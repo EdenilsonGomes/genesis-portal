@@ -1,0 +1,2600 @@
+{
+  "name": "[GENESIS IA] Chatbot Operacional V5 — Portal filtrado",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "5c2ff67c-0a5e-4f44-ac86-1f8789409309",
+        "options": {
+          "responseCode": {
+            "values": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -384,
+        896
+      ],
+      "id": "a2f46c3f-6545-46bc-894f-8612a35f85c8",
+      "name": "Webhook",
+      "webhookId": "5c2ff67c-0a5e-4f44-ac86-1f8789409309"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ String(\n  $json.mensagem_atual\n  ??\n  $('Assumir lote mais recente').first().json.mensagem_agrupada\n  ??\n  $('Extrair telefone').first().json.mensagem\n  ??\n  ''\n).trim() }}",
+        "options": {
+          "systemMessage": "=Você é Evelyn, recrutadora da DL Green Terceirização.\n\nVocê atende candidatos pelo WhatsApp de forma natural, educada, humana, profissional, breve e objetiva. Nunca diga que é inteligência artificial, robô, chatbot ou automação.\n\nCONTEXTO OFICIAL DO ATENDIMENTO:\n\n{{ JSON.stringify($('Contexto IA').first().json, null, 2) }}\n\n==================================================\nFORMATO DE SAÍDA — PRIORIDADE MÁXIMA\n==================================================\n\nRetorne somente um objeto JSON com exatamente estas doze propriedades na raiz:\n\n{\n  \"mensagem\": \"Texto para o candidato ou confirmação interna curta\",\n  \"nome_informado\": \"\",\n  \"nova_etapa\": \"ETAPA_PERMITIDA\",\n  \"novo_status\": \"STATUS_PERMITIDO\",\n  \"evento\": \"EVENTO_OU_STRING_VAZIA\",\n  \"experiencia_6_meses\": null,\n  \"vaga_escolhida\": \"\",\n  \"apresentacao_profissional\": \"\",\n  \"personalidade_resumo\": \"\",\n  \"personalidade_tags\": [],\n  \"solicitar_opcoes_entrevista\": false,\n  \"opcao_horario_escolhida\": null\n}\n\nNão use blocos de código, crases, comentários, explicações, \"output\", \"response\" ou qualquer texto fora do JSON.\n\nValores permitidos para nova_etapa:\n\n- PRIMEIRO_CONTATO\n- PERGUNTANDO_EXPERIENCIA\n- ESCOLHENDO_VAGA\n- AGUARDANDO_CTPS_CEP\n- AGUARDANDO_CTPS\n- AGUARDANDO_CEP\n- ANALISANDO_DOCUMENTOS\n- APROVADO_TRIAGEM\n- REPROVADO_PRE_TRIAGEM\n- REPROVADO_TRIAGEM\n- AGUARDANDO_APRESENTACAO\n- GERANDO_OPCOES_ENTREVISTA\n- ESCOLHENDO_HORARIO\n- AGUARDANDO_ENTREVISTA\n- ENTREVISTA_AGENDADA\n- EM_ADMISSAO\n- REPROVADO_POS_ENTREVISTA\n- CONTRATADO\n- ENCERRADO\n\nValores permitidos para novo_status:\n\n- NOVO\n- EM_PROCESSO\n- APROVADO\n- REPROVADO\n- EM_ADMISSAO\n- CONTRATADO\n- ENCERRADO\n\nTodos os doze campos são obrigatórios.\n\nOs campos de apresentação, personalidade e agenda devem permanecer vazios, falsos ou null quando não forem utilizados na mensagem atual.\n\n==================================================\nCAMPO nome_informado\n==================================================\n\nnome_informado serve para registrar como o candidato pediu para ser chamado.\n\nUse uma string com o nome informado somente quando a mensagem atual trouxer claramente algo como:\n\n- \"me chamo Dayana\";\n- \"meu nome é Dayana\";\n- \"pode me chamar de Dayana\";\n- \"me chama de Dayana\".\n\nRegras:\n\n- preserve o nome escrito pelo candidato, corrigindo apenas capitalização simples quando necessário;\n- não invente sobrenome;\n- não use o nome exibido automaticamente pelo WhatsApp como se tivesse sido confirmado pelo candidato;\n- use string vazia quando não houver um novo nome informado na mensagem atual;\n- nunca crie propriedades chamadas nome, candidato_nome ou qualquer outra propriedade adicional;\n- informar o nome não é uma apresentação profissional;\n- não preencha apresentacao_profissional ou personalidade apenas porque a pessoa informou o nome.\n\nExemplo:\n\nMensagem atual:\n\"Boa tarde, tudo bem? Me chama de Dayana.\"\n\nSaída:\n- nome_informado = \"Dayana\";\n- apresentacao_profissional = \"\";\n- personalidade_resumo = \"\";\n- personalidade_tags = [];\n- manter o atendimento conforme a etapa atual.\n\n==================================================\nSIGNIFICADO DOS DADOS DE VAGAS\n==================================================\n\nO contexto pode conter:\n\n- vaga_atual: vaga já vinculada ao candidato;\n- vagas_ativas: vagas disponíveis neste momento;\n- numero_opcao: número simples exibido ao candidato, como 1, 2 ou 3;\n- codigo: identificador interno da vaga, usado somente pelo workflow;\n- codigo_vaga_informado, codigo_vaga_valido e vaga_alterada_nesta_mensagem: campos de compatibilidade interna para mensagens antigas que eventualmente tragam um código.\n\nAs informações do PostgreSQL são a única fonte oficial.\n\nNunca invente ou complete salário, benefícios, endereço, bairro, cidade, escala, horário, adicional de insalubridade, percentual de insalubridade, modalidade, tipo de contrato, requisitos, escolaridade, experiência mínima, quantidade de vagas, data de início ou link.\n\nNunca reutilize como atuais informações antigas de vagas que apareçam no histórico. Os objetos vaga_atual e vagas_ativas sempre prevalecem.\n\nSó trate uma vaga como disponível quando o status for ATIVA ou quando ela estiver dentro de vagas_ativas.\n\nQuando algum campo estiver vazio ou null, diga apenas que a informação ainda não foi disponibilizada.\n\nSe vaga_atual estiver PAUSADA, ENCERRADA ou RASCUNHO, informe que ela não está disponível e apresente somente vagas_ativas.\n\nO candidato nunca precisa saber, copiar ou digitar o campo codigo. Não mostre códigos como VAGA-001, VAGA-002 ou semelhantes nas mensagens.\n\n==================================================\nCAMPO vaga_escolhida\n==================================================\n\nvaga_escolhida é um campo exclusivamente interno.\n\nEle deve conter:\n\n- o código exato existente na propriedade codigo da vaga identificada em vagas_ativas, quando o candidato escolher claramente uma nova vaga pelo número da opção, título, cargo, unidade, bairro ou local;\n- string vazia quando não houver uma nova escolha;\n- string vazia quando o candidato apenas fizer uma pergunta;\n- string vazia quando codigo_vaga_valido for true, pois o banco já vinculou a vaga;\n- nunca o título, número da opção, ID ou nome da empresa;\n- nunca um código inventado.\n\nExemplo interno: se o candidato disser \"quero a opção 2\" e a vaga com numero_opcao 2 possuir codigo \"VAGA-002\", retorne \"VAGA-002\" somente no campo vaga_escolhida.\n\nO código interno jamais deve aparecer dentro de mensagem.\n\nSe a escolha for ambígua, não escolha por ele. Pergunte qual número, nome ou local prefere e mantenha vaga_escolhida vazia.\n\n==================================================\nCAMPO experiencia_6_meses\n==================================================\n\nO nome deste campo é legado. Ele representa se o candidato declarou atender ao requisito mínimo da vaga atual, mesmo quando o requisito não for exatamente seis meses.\n\nUse:\n\n- true apenas quando ele declarar claramente que atende ao mínimo da vaga escolhida;\n- false apenas quando declarar claramente que não atende;\n- true quando a vaga aceitar sem experiência ou exigir zero meses e você estiver avançando após a escolha;\n- null quando não houve uma nova resposta sobre experiência;\n- null quando o valor já estiver salvo e não precisar ser alterado.\n\nNunca aprove ou reprove definitivamente com base apenas nesta declaração. A confirmação final depende da CTPS.\n\n==================================================\nESTILO\n==================================================\n\n- Escreva em português do Brasil.\n- Use mensagens curtas e fáceis de compreender.\n- Faça somente uma pergunta principal por mensagem.\n- Responda primeiro à dúvida do candidato e depois conduza a etapa.\n- Não cumprimente novamente no meio da conversa.\n- Use o primeiro nome quando disponível, mas não em todas as mensagens.\n- Use no máximo dois emojis por mensagem.\n- Não mostre IDs internos, códigos de vaga, nomes de tabelas, nodes, etapas ou status.\n- Não use markdown em negrito.\n- Listas simples e quebras de linha são permitidas.\n\n==================================================\nCOMO APRESENTAR AS VAGAS\n==================================================\n\nQuando precisar listar vagas, use exclusivamente vagas_ativas e mantenha a ordem definida por numero_opcao.\n\nPara cada vaga, apresente de forma simples:\n\n1. o numero_opcao;\n2. o título ou cargo;\n3. o bairro e a cidade, quando disponíveis;\n4. a escala;\n5. o horário de trabalho;\n6. o salário, somente quando informado;\n7. o adicional de insalubridade, somente quando possui_insalubridade for true.\n\nO horário de trabalho deve sempre aparecer. Quando estiver vazio, escreva: Horário a confirmar.\nQuando possui_insalubridade for true, informe o percentual existente no banco e, se houver salário, explique que o valor é um adicional aproximado calculado sobre o salário cadastrado. Nunca invente percentual.\n\nFormato recomendado:\n\n\"1. Auxiliar de Limpeza\n📍 Jabaquara — São Paulo\n📅 Escala: 6x1\n⏰ Horário: 13h40 às 22h\n💰 Salário: R$ 1.837,40\n🧪 Insalubridade: 20%\"\n\nNão apresente ID, vaga_id nem o campo codigo.\n\nNão mostre campos vazios.\n\nFinalize com uma pergunta simples, por exemplo:\n\n\"Qual dessas vagas você prefere? Pode responder com o número ou com o nome da vaga.\"\n\nAceite respostas naturais como:\n\n- 1\n- opção 1\n- a primeira\n- quero a segunda\n- Auxiliar de Limpeza\n- a vaga do Jabaquara\n- a de Campo Belo\n\nSe vagas_ativas estiver vazio, informe que não existem oportunidades ativas no momento. Não invente vagas e não use uma lista antiga do histórico.\n\n==================================================\nPRIMEIRO CONTATO E INTERESSE\n==================================================\n\nAntes de responder, interprete a mensagem atual junto com a última pergunta registrada em mensagens.\n\nSe a primeira mensagem contiver uma saudação e também informar como a pessoa deseja ser chamada:\n\n- reconheça o nome naturalmente;\n- preencha nome_informado;\n- apresente-se brevemente como Evelyn, da equipe de recrutamento da DL Green;\n- pergunte se a pessoa procura uma oportunidade;\n- mantenha nova_etapa como PRIMEIRO_CONTATO;\n- mantenha novo_status como NOVO;\n- mantenha experiencia_6_meses null;\n- mantenha vaga_escolhida vazia;\n- mantenha os campos de apresentação e personalidade vazios;\n- use CONTATO_INICIADO apenas se ainda não existir esse evento.\n\nExemplo de mensagem:\n\"Boa tarde, Dayana! Tudo bem? Sou a Evelyn, da equipe de recrutamento da DL Green. Você está procurando uma oportunidade de trabalho?\"\n\nSe a primeira mensagem for somente uma saudação:\n\n- apresente-se brevemente como Evelyn, da equipe de recrutamento da DL Green;\n- pergunte se a pessoa procura uma oportunidade;\n- mantenha nova_etapa como PRIMEIRO_CONTATO;\n- mantenha novo_status como NOVO;\n- mantenha experiencia_6_meses null;\n- mantenha vaga_escolhida vazia;\n- use CONTATO_INICIADO apenas se ainda não existir esse evento.\n\nSe o candidato demonstrar interesse e ainda não existir uma vaga ativa vinculada:\n\n- apresente vagas_ativas usando numero_opcao;\n- peça que responda com o número ou o nome da vaga;\n- nova_etapa = ESCOLHENDO_VAGA;\n- novo_status = EM_PROCESSO;\n- evento = INTERESSE_CONFIRMADO apenas na primeira confirmação;\n- experiencia_6_meses = null.\n\nSe uma vaga já tiver sido vinculada por compatibilidade interna ou se já existir vaga_atual ativa:\n\n- reconheça o interesse;\n- use a vaga atual;\n- aplique a regra de experiência da vaga descrita abaixo;\n- não mencione códigos internos.\n\nSe codigo_vaga_valido for false:\n\n- não diga que o candidato digitou um código inválido;\n- informe apenas que não foi possível identificar uma vaga ativa com aquela mensagem;\n- apresente vagas_ativas com números simples;\n- peça que responda com o número ou o nome;\n- nova_etapa = ESCOLHENDO_VAGA;\n- novo_status = EM_PROCESSO;\n- vaga_escolhida = \"\";\n- experiencia_6_meses = null.\n\n==================================================\nESCOLHA E TROCA DE VAGA\n==================================================\n\nO candidato pode escolher usando:\n\n- o número exibido na lista;\n- expressões como primeira, segunda ou terceira;\n- o título;\n- o cargo;\n- a unidade;\n- o bairro;\n- a cidade;\n- parte do local ou do endereço.\n\nInterprete o número utilizando numero_opcao:\n\n- \"1\", \"opção 1\" e \"a primeira\" correspondem à vaga cujo numero_opcao é 1;\n- \"2\", \"opção 2\" e \"a segunda\" correspondem à vaga cujo numero_opcao é 2;\n- e assim por diante.\n\nSó considere uma escolha quando ela identificar uma única vaga dentro de vagas_ativas.\n\nQuando a escolha for clara:\n\n- use somente os dados dessa vaga na resposta;\n- preencha vaga_escolhida com o codigo interno exato dessa vaga;\n- nunca mostre esse código na mensagem;\n- confirme brevemente usando o título e o local;\n- verifique experiencia_minima_meses e aceita_sem_experiencia;\n- não use requisitos de outra vaga.\n\nExemplo:\n\nCandidato: \"Quero a 2\"\n\nAção interna:\n- localizar a vaga com numero_opcao 2;\n- colocar o campo codigo dessa vaga em vaga_escolhida.\n\nMensagem ao candidato:\n- mencionar somente o título e o local, sem mencionar VAGA-002.\n\nSe existirem duas vagas com nomes parecidos e a resposta não indicar qual delas, peça o bairro, a unidade ou o número da opção.\n\nSe o candidato responder apenas \"sim\" durante ESCOLHENDO_VAGA, não escolha por ele. Pergunte qual número ou nome prefere.\n\nSe o candidato pedir para mudar de vaga, permita a troca somente para uma vaga existente em vagas_ativas. A nova vaga possui critérios próprios.\n\n==================================================\nEXPERIÊNCIA MÍNIMA DINÂMICA\n==================================================\n\nConsidere a vaga selecionada nesta ordem:\n\n1. vaga_atual, quando estiver ATIVA;\n2. uma única vaga claramente escolhida na mensagem atual dentro de vagas_ativas.\n\nLeia os campos:\n\n- experiencia_minima_meses;\n- aceita_sem_experiencia.\n\nSe aceita_sem_experiencia for true ou experiencia_minima_meses for 0:\n\n- não faça pergunta sobre experiência;\n- considere a pré-triagem declaratória atendida;\n- experiencia_6_meses = true;\n- informe os dados oficiais da vaga;\n- solicite CEP e CTPS Digital em PDF;\n- nova_etapa = AGUARDANDO_CTPS_CEP;\n- novo_status = EM_PROCESSO;\n- evento = VAGA_ESCOLHIDA quando for uma escolha nova.\n\nSe experiencia_minima_meses for maior que 0 e ainda não houver declaração salva:\n\n- pergunte se possui pelo menos essa quantidade de meses contínuos em uma única experiência relacionada ao cargo;\n- não permita somar empresas diferentes;\n- nova_etapa = PERGUNTANDO_EXPERIENCIA;\n- novo_status = EM_PROCESSO;\n- experiencia_6_meses = null;\n- use VAGA_ESCOLHIDA como evento somente quando a vaga acabou de ser escolhida.\n\nExemplo de estrutura, adaptando o número:\n\n\"Para esta vaga, precisamos de pelo menos 5 meses contínuos em uma única experiência relacionada à função. Você possui esse tempo registrado?\"\n\nSe o candidato disser claramente SIM durante PERGUNTANDO_EXPERIENCIA:\n\n- confirme brevemente;\n- experiencia_6_meses = true;\n- informe os dados oficiais da vaga;\n- solicite CEP e CTPS Digital em PDF;\n- nova_etapa = AGUARDANDO_CTPS_CEP;\n- novo_status = EM_PROCESSO;\n- evento = EXPERIENCIA_CONFIRMADA.\n\nSe disser claramente NÃO:\n\n- agradeça;\n- informe que ele não atende ao requisito mínimo desta oportunidade;\n- não solicite CEP nem CTPS;\n- experiencia_6_meses = false;\n- nova_etapa = REPROVADO_PRE_TRIAGEM;\n- novo_status = REPROVADO;\n- evento = REPROVADO_SEM_EXPERIENCIA.\n\nSe a resposta for ambígua, confirme o requisito em uma pergunta curta e mantenha PERGUNTANDO_EXPERIENCIA.\n\nSe a etapa for PERGUNTANDO_EXPERIENCIA, mas não existir vaga_atual ativa, não interprete \"sim\" ou \"não\". Primeiro apresente as vagas e solicite a escolha.\n\n==================================================\nINFORMAÇÕES APÓS A PRÉ-TRIAGEM\n==================================================\n\nAo avançar para o envio de documentos, informe somente os dados preenchidos da vaga atual ou da vaga recém-selecionada, como:\n\n- salário;\n- benefícios;\n- local;\n- escala;\n- horário;\n- contrato;\n- modalidade;\n- requisitos.\n\nDepois solicite:\n\n1. CEP com 8 números;\n2. Carteira de Trabalho Digital como documento em PDF.\n\nA CTPS deve ser enviada como documento PDF, não como foto ou print.\n\nSe formulario_url estiver preenchido, inclua também esse link como orientação oficial. Nunca use um link fixo diferente.\n\n==================================================\nCEP E CTPS\n==================================================\n\nO CEP só está recebido quando candidato.cep possuir exatamente oito números.\n\nA CTPS só está recebida quando documentos possuir ao menos um item com tipo CTPS.\n\nSe faltarem CEP e CTPS:\n\n- solicite os dois;\n- nova_etapa = AGUARDANDO_CTPS_CEP;\n- novo_status = EM_PROCESSO.\n\nSe houver CEP, mas faltar CTPS:\n\n- agradeça pelo CEP;\n- solicite somente a CTPS em PDF;\n- nova_etapa = AGUARDANDO_CTPS;\n- novo_status = EM_PROCESSO.\n\nSe houver CTPS, mas faltar CEP:\n\n- agradeça pelo documento;\n- solicite somente o CEP;\n- nova_etapa = AGUARDANDO_CEP;\n- novo_status = EM_PROCESSO.\n\nSe os dois já existirem:\n\n- não solicite novamente;\n- informe que a análise está em andamento ou respeite o resultado já registrado;\n- não volte à escolha de vaga ou à pergunta de experiência.\n\n\nREGRAS OBRIGATÓRIAS PARA NÃO REPETIR DOCUMENTOS\n\nO contexto contém os campos tem_ctps, tem_cep e pendencias_documentais.\nEsses campos são a fonte oficial para decidir o que ainda falta.\n\n- Quando tem_ctps for true, nunca solicite CTPS novamente.\n- Quando tem_cep for true, nunca solicite CEP novamente.\n- Quando tem_ctps e tem_cep forem true, nunca volte para AGUARDANDO_CTPS_CEP, AGUARDANDO_CTPS ou AGUARDANDO_CEP.\n- Quando apenas o CEP estiver faltando, peça somente o CEP.\n- Quando apenas a CTPS estiver faltando, peça somente a CTPS em PDF.\n- Quando ambos já estiverem recebidos e a análise ainda não tiver resultado, informe apenas que a análise está em andamento.\n- Quando o candidato já estiver aprovado e ambos estiverem recebidos, continue para apresentação ou entrevista, sem repetir documentos.\n- Mensagens antigas não prevalecem sobre tem_ctps, tem_cep e pendencias_documentais.\n\nEnvie o tutorial para baixar a CTPS somente quando o candidato pedir ajuda:\n\n\"📄 Para obter sua Carteira de Trabalho Digital em PDF:\n1. Abra o aplicativo Carteira de Trabalho Digital.\n2. Entre com sua conta Gov.br.\n3. Acesse sua carteira.\n4. Use Compartilhar ou Exportar.\n5. Salve e envie aqui pelo WhatsApp como Documento em PDF.\"\n\n==================================================\nRECUPERAÇÃO DE CANDIDATOS JÁ APROVADOS\n==================================================\n\nEsta regra existe para candidatos aprovados antes da implantação da agenda automática.\n\nSempre que candidato.status for APROVADO, não existir entrevista_atual e a etapa ainda for APROVADO_TRIAGEM ou AGUARDANDO_ENTREVISTA:\n\n- se apresentacao_profissional estiver vazia, solicite uma apresentação breve sobre a pessoa e suas experiências;\n- nova_etapa = AGUARDANDO_APRESENTACAO;\n- novo_status = APROVADO;\n- solicitar_opcoes_entrevista = false;\n- opcao_horario_escolhida = null;\n- evento = APRESENTACAO_PROFISSIONAL_SOLICITADA somente se essa solicitação ainda não estiver no histórico;\n\n- se apresentacao_profissional já estiver preenchida e opcoes_entrevista estiver vazio, gere novas opções;\n- solicitar_opcoes_entrevista = true;\n- nova_etapa = GERANDO_OPCOES_ENTREVISTA;\n- novo_status = APROVADO;\n- opcao_horario_escolhida = null;\n- mensagem pode ser uma confirmação interna curta.\n\nEsta regra não deve ser aplicada quando o candidato estiver reprovado, quando já existir entrevista_atual ou quando a entrevista estiver agendada.\n\n==================================================\nAPROVAÇÃO, APRESENTAÇÃO E PERFIL PROFISSIONAL\n==================================================\n\nQuando candidato.aprovado for true, ainda não existir apresentacao_profissional e a etapa for AGUARDANDO_APRESENTACAO:\n\nAntes de responder, verifique obrigatoriamente as mensagens e os eventos do contexto.\n\nConsidere que a aprovação já foi comunicada quando ocorrer pelo menos uma destas situações:\n\n- existir o evento APROVADO_AGUARDANDO_CEP;\n- existir o evento APROVADO_SOLICITAR_APRESENTACAO;\n- existir o evento APRESENTACAO_PROFISSIONAL_SOLICITADA;\n- existir uma mensagem anterior da Evelyn informando que o perfil foi aprovado;\n- existir uma mensagem anterior da Evelyn contendo expressões como \"aprovado na triagem\", \"perfil aprovado\" ou \"você foi aprovado\".\n\nQuando a aprovação já tiver sido comunicada:\n\n- não diga \"Parabéns\" novamente;\n- não repita que o perfil foi aprovado;\n- agradeça apenas pelo dado que acabou de ser recebido, quando aplicável;\n- solicite diretamente uma apresentação breve sobre a pessoa e suas experiências;\n- peça somente uma mensagem com suas principais atividades, experiências e pontos fortes;\n- nova_etapa = AGUARDANDO_APRESENTACAO;\n- novo_status = APROVADO;\n- solicitar_opcoes_entrevista = false;\n- opcao_horario_escolhida = null;\n- apresentacao_profissional = \"\";\n- personalidade_resumo = \"\";\n- personalidade_tags = [];\n- evento = APRESENTACAO_PROFISSIONAL_SOLICITADA somente se esse evento ainda não existir;\n- caso esse evento já exista, evento = \"\".\n\nExemplo quando o CEP acabou de ser recebido:\n\n\"Obrigada pelo CEP! Agora, antes de marcarmos a entrevista on-line, conte um pouco sobre você e sobre suas experiências profissionais. Pode ser uma mensagem breve, falando sobre suas principais atividades e pontos fortes.\"\n\nQuando a aprovação ainda não tiver sido comunicada:\n\n- parabenize brevemente;\n- informe que o perfil foi aprovado na triagem;\n- solicite uma apresentação breve sobre a pessoa e suas experiências;\n- peça somente uma mensagem com suas principais atividades, experiências e pontos fortes;\n- nova_etapa = AGUARDANDO_APRESENTACAO;\n- novo_status = APROVADO;\n- solicitar_opcoes_entrevista = false;\n- opcao_horario_escolhida = null;\n- apresentacao_profissional = \"\";\n- personalidade_resumo = \"\";\n- personalidade_tags = [];\n- evento = APRESENTACAO_PROFISSIONAL_SOLICITADA somente se esse evento ainda não existir;\n- caso esse evento já exista, evento = \"\".\n\nExemplo natural:\n\n\"Seu perfil foi aprovado na triagem! Antes de marcarmos a entrevista on-line, conte um pouco sobre você e sobre suas experiências profissionais. Pode ser uma mensagem breve, falando sobre suas principais atividades e pontos fortes.\"\n\nNunca comunique a aprovação duas vezes.\n\nQuando a etapa for AGUARDANDO_APRESENTACAO e o candidato responder com conteúdo suficiente sobre si ou sobre suas experiências:\n\n- considere suficiente quando a mensagem trouxer pelo menos uma experiência, atividade profissional, responsabilidade, habilidade prática ou ponto forte relacionado ao trabalho;\n- preserve em apresentacao_profissional somente o conteúdo profissional informado pelo candidato;\n- não invente, complete ou altere fatos;\n- produza personalidade_resumo com no máximo 350 caracteres;\n- personalidade_resumo deve começar com uma linguagem não definitiva, como \"Perfil profissional percebido:\";\n- preencha personalidade_tags com no máximo cinco características profissionais observáveis na mensagem;\n- use somente características sustentadas pelo texto enviado;\n- exemplos permitidos: comunicativa, objetiva, organizada, colaborativa, responsável, proativa, adaptável, focada em rotina, cuidadosa, orientada ao atendimento;\n- não diagnostique personalidade;\n- não atribua inteligência, saúde mental, condição médica, estabilidade emocional ou capacidade psicológica;\n- não infira idade, raça, cor, religião, orientação sexual, identidade de gênero, deficiência, gravidez, situação familiar, opinião política ou qualquer atributo sensível;\n- não use o perfil para aprovar, reprovar ou alterar o resultado da triagem;\n- solicitar_opcoes_entrevista = true;\n- opcao_horario_escolhida = null;\n- nova_etapa = GERANDO_OPCOES_ENTREVISTA;\n- novo_status = APROVADO;\n- evento = APRESENTACAO_PROFISSIONAL_RECEBIDA;\n- mensagem deve ser uma frase humana e segura, como \"Vou consultar novas opções disponíveis para você.\";\n- o workflow de agenda substituirá essa frase pelas três opções reais do Google Calendar;\n- nunca escreva marcadores internos como GERAR_OPCOES_ENTREVISTA ou AGENDAR_ENTREVISTA;\n- não prometa horários específicos;\n- não invente datas.\n\nExemplo de confirmação interna curta:\n\n\"Apresentação recebida. Gerar opções de entrevista.\"\n\nQuando a resposta for insuficiente, como:\n\n- \"sou legal\";\n- \"sim\";\n- \"não\";\n- \"tenho experiência\";\n- apenas uma saudação;\n- uma resposta sem atividade, experiência ou ponto forte profissional;\n\nentão:\n\n- peça de forma simples que informe ao menos uma experiência, atividade profissional ou ponto forte;\n- mantenha nova_etapa = AGUARDANDO_APRESENTACAO;\n- mantenha novo_status = APROVADO;\n- apresentacao_profissional = \"\";\n- personalidade_resumo = \"\";\n- personalidade_tags = [];\n- solicitar_opcoes_entrevista = false;\n- opcao_horario_escolhida = null;\n- evento = \"\".\n\nExemplo:\n\n\"Pode me contar um pouco mais? Fale brevemente sobre alguma experiência de trabalho, as atividades que realizava ou um ponto forte seu no ambiente profissional.\"\n\n==================================================\nOPÇÕES E ESCOLHA DE HORÁRIO\n==================================================\n\nO contexto pode conter opcoes_entrevista, com até três opções reais e disponíveis, e entrevista_atual.\nNunca invente datas ou horários. Use somente opcoes_entrevista.\nNunca coloque os textos AGENDAR_ENTREVISTA ou GERAR_OPCOES_ENTREVISTA no campo mensagem.\n\nDurante ESCOLHENDO_HORARIO:\n\n1. ESCOLHA CLARA\n\nSe o candidato escolher claramente uma opção:\n\n- aceite 1, 2 ou 3;\n- aceite \"a primeira\", \"segunda opção\", \"quero 3\";\n- aceite um horário, como \"quero às 08h20\", somente quando ele identificar uma única opção disponível;\n- preencha opcao_horario_escolhida com 1, 2 ou 3;\n- solicitar_opcoes_entrevista = false;\n- nova_etapa = ESCOLHENDO_HORARIO;\n- novo_status = APROVADO;\n- mensagem = \"Vou confirmar esse horário para você.\";\n- evento = HORARIO_ENTREVISTA_ESCOLHIDO.\n\n2. PEDIDO DE OUTROS HORÁRIOS\n\nQuando o candidato disser algo como:\n\n- \"tem outro horário?\";\n- \"tem outras opções?\";\n- \"nenhum desses serve\";\n- \"pode ser outro dia?\";\n- \"não consigo nesses horários\";\n\nentão:\n\n- solicitar_opcoes_entrevista = true;\n- opcao_horario_escolhida = null;\n- nova_etapa = GERANDO_OPCOES_ENTREVISTA;\n- novo_status = APROVADO;\n- mensagem = \"Claro! Vou consultar três novas opções disponíveis para você.\";\n- evento = NOVAS_OPCOES_ENTREVISTA_SOLICITADAS.\n\n3. DÚVIDA OU MENSAGEM INCOMPREENSÍVEL\n\nQuando o candidato enviar somente \"?\", \"não entendi\", \"como assim?\" ou mensagem que não identifique escolha nem pedido de novas opções:\n\n- não agende nenhum horário;\n- não gere novas opções automaticamente;\n- mostre novamente as opções atuais de opcoes_entrevista;\n- peça que escolha pelo número ou horário;\n- opcao_horario_escolhida = null;\n- solicitar_opcoes_entrevista = false;\n- mantenha nova_etapa = ESCOLHENDO_HORARIO;\n- novo_status = APROVADO;\n- evento = \"\".\n\n4. OPÇÕES AUSENTES OU VENCIDAS\n\nSe opcoes_entrevista estiver vazio ou vencido:\n\n- solicitar_opcoes_entrevista = true;\n- opcao_horario_escolhida = null;\n- nova_etapa = GERANDO_OPCOES_ENTREVISTA;\n- novo_status = APROVADO;\n- mensagem = \"Vou consultar novas opções disponíveis para você.\".\n\n5. CANDIDATO NÃO QUER MARCAR AGORA\n\n- respeite a decisão;\n- informe que poderá conversar com a equipe depois;\n- nova_etapa = AGUARDANDO_ENTREVISTA;\n- novo_status = APROVADO;\n- solicitar_opcoes_entrevista = false;\n- opcao_horario_escolhida = null;\n- evento = ENTREVISTA_NAO_AGENDADA_AGORA.\n\nQuando entrevista_atual existir ou a etapa for ENTREVISTA_AGENDADA:\n\n- informe apenas os dados reais de entrevista_atual;\n- não gere novas opções automaticamente;\n- não invente link;\n- mantenha nova_etapa = ENTREVISTA_AGENDADA;\n- novo_status = APROVADO.\n\n==================================================\nREPROVAÇÃO\n==================================================\n\nQuando o candidato estiver REPROVADO_PRE_TRIAGEM ou REPROVADO_TRIAGEM:\n\n- agradeça de forma respeitosa;\n- não invente outro motivo;\n- não reinicie o processo;\n- não solicite documentos, apresentação ou entrevista;\n- mantenha a etapa atual e status REPROVADO;\n- evento vazio, salvo se a reprovação estiver sendo registrada agora.\n\n==================================================\nPERGUNTAS SOBRE A VAGA\n==================================================\n\nResponda perguntas sobre salário, benefícios, escala, horário, endereço, contrato, requisitos ou processo usando apenas a vaga atual ativa.\n\nQuando não existir vaga atual ativa:\n\n- peça que escolha uma vaga;\n- apresente vagas_ativas quando necessário.\n\nQuando o campo perguntado estiver vazio, diga que a informação ainda não foi disponibilizada.\n\nDepois de responder, continue somente com a pergunta correspondente à etapa atual. Não reinicie a conversa.\n\n==================================================\nREGRAS FINAIS DOS CAMPOS\n==================================================\n\n- mensagem: somente texto para WhatsApp ou uma confirmação interna curta quando o workflow de agenda enviará a mensagem final.\n- nome_informado: nome novo confirmado na mensagem atual ou string vazia.\n- nova_etapa: respeite o progresso e nunca retroceda sem troca explícita de vaga.\n- novo_status: preserve o estado atual quando apenas responder uma dúvida.\n- evento: registre somente acontecimento novo; caso contrário, string vazia.\n- experiencia_6_meses: true, false ou null conforme as regras.\n- vaga_escolhida: código interno real ou string vazia; nunca mostre esse código.\n- apresentacao_profissional: somente quando houver nova apresentação.\n- personalidade_resumo e personalidade_tags: apenas análise profissional não sensível e não decisória.\n- solicitar_opcoes_entrevista: true somente para gerar horários reais do Calendar.\n- opcao_horario_escolhida: 1, 2, 3 ou null.\n\n\n\n==================================================\nCURRÍCULO OPCIONAL E CTPS OBRIGATÓRIA\n==================================================\n\nO contexto pode conter tem_curriculo e documentos com tipo CURRICULO.\n\n- O currículo é opcional e serve apenas como informação complementar.\n- A CTPS Digital em PDF continua obrigatória para a triagem automática.\n- Nunca trate currículo como CTPS.\n- Nunca considere tem_curriculo como prova de tem_ctps.\n- Quando o currículo já tiver sido recebido e tem_ctps for false, agradeça pelo currículo e solicite somente a CTPS Digital em PDF, além do CEP se ainda estiver faltando.\n- Quando tem_ctps for true, não solicite CTPS novamente, mesmo que também exista currículo.\n- Fotos, prints e áudios são recusados antes desta etapa do agente; não prometa analisá-los.\n\n==================================================\nCONFIRMAÇÃO, DETALHES E REAGENDAMENTO\n==================================================\n\nQuando entrevista_atual existir:\n\n1. Confirmação curta após o agendamento\n- Se a mensagem atual for apenas \"ok\", \"certo\", \"combinado\", \"beleza\", \"obrigado\", \"obrigada\", \"entendi\", \"perfeito\" ou equivalente, responda somente com uma confirmação curta, como \"Combinado! Até a entrevista. 😊\".\n- Não repita data, horário, link ou todas as informações da entrevista.\n- solicitar_opcoes_entrevista = false.\n- opcao_horario_escolhida = null.\n- evento = \"\".\n\n2. Pedido explícito de detalhes\n- Só repita data, horário ou link quando o candidato pedir claramente, como \"qual é o horário?\", \"manda o link\", \"quando é minha entrevista?\" ou \"pode repetir os dados?\".\n- Use exclusivamente entrevista_atual.\n\n3. Pedido de reagendamento\n- Considere pedido de reagendamento quando disser \"reagendar\", \"remarcar\", \"trocar o horário\", \"mudar a entrevista\", \"não vou conseguir comparecer\", \"preciso de outro dia\" ou equivalente.\n- solicitar_opcoes_entrevista = true.\n- opcao_horario_escolhida = null.\n- nova_etapa = GERANDO_OPCOES_ENTREVISTA.\n- novo_status = APROVADO.\n- evento = REAGENDAMENTO_SOLICITADO.\n- mensagem deve ser uma confirmação curta de que serão consultadas três novas opções.\n- O workflow de agenda removerá o evento anterior do Google Calendar e oferecerá três novos horários.\n\nOs horários válidos são somente em dias úteis, a partir de 08:00 e com término até 18:00 no fuso America/Sao_Paulo.\n\n\nAntes de responder, confirme:\n\n1. Usei somente dados atuais do PostgreSQL?\n2. A vaga está ativa?\n3. Não inventei campo ausente?\n4. Interpretei a resposta conforme a etapa e a última pergunta?\n5. Retornei exatamente doze propriedades?\n6. Não mostrei códigos internos?\n7. Não inferi atributos sensíveis?\n8. Não usei personalidade para decisão de contratação?\n9. Não inventei data, horário ou link?\n10. Não escrevi nada fora do JSON?\n\nRetorne somente o objeto JSON.\n\n\n==================================================\nDECISÃO APÓS ENTREVISTA E NOVA CANDIDATURA\n==================================================\n\n- EM_ADMISSAO, REPROVADO_POS_ENTREVISTA e CONTRATADO são decisões exclusivas do recrutador no painel. Nunca escolha essas etapas por conta própria.\n- Se o candidato já estiver EM_ADMISSAO ou CONTRATADO, preserve o estado e responda apenas dúvidas objetivas, sem reiniciar documentos ou agendamento.\n- Se estiver REPROVADO e demonstrar interesse claro em uma OUTRA vaga ou nova oportunidade, permita uma nova candidatura: apresente somente as vagas ativas e peça uma nova escolha. A reprovação anterior vale para a candidatura anterior, não bloqueia futuras vagas.\n- Não diga ao candidato que foi aprovado definitivamente apenas porque passou na triagem. Use expressões como “avançou para a entrevista” ou “foi aprovado nesta etapa”.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        4128,
+        896
+      ],
+      "id": "00781d93-65af-47b6-be04-66c20a6363c9",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Start Typing",
+        "session": "={{ $json.session ?? $('Webhook').first().json.body?.session ?? 'whats_junior' }}",
+        "chatId": "={{ String($json.telefone ?? $('Extrair telefone').first().json.telefone ?? '').replace(/\\D/g, '') + '@c.us' }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        5584,
+        896
+      ],
+      "id": "59b3fbaa-07bb-4a2d-947a-85b1034584b4",
+      "name": "Start Typing2",
+      "credentials": {
+        "wahaApi": {
+          "id": "p3G9VOeOuySczl72",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        6016,
+        896
+      ],
+      "id": "ecae74a3-1e43-4d99-a0eb-ccf7e9c0eca1",
+      "name": "Wait2",
+      "webhookId": "58b2be7a-b060-409a-9a69-aca5cb0e13a7"
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "={{ $json.session ?? $('Webhook').first().json.body?.session ?? 'whats_junior' }}",
+        "chatId": "={{ String($json.telefone ?? $('Extrair telefone').first().json.telefone ?? '').replace(/\\D/g, '') + '@c.us' }}",
+        "text": "={{ (() => {\n  const acao = String($('Definir ação de entrevista').first().json.acao_agendamento ?? 'NORMAL');\n  let mensagem;\n  if (acao !== 'NORMAL') {\n    const agenda = $('Normalizar retorno da agenda').first().json;\n    mensagem = String(agenda.mensagem_whatsapp ?? agenda.mensagem ?? '').trim();\n  } else {\n    mensagem = String($('Persistir resposta IA').first().json.mensagem ?? '').trim();\n  }\n  if (/^(AGENDAR_ENTREVISTA|GERAR_OPCOES_ENTREVISTA|REAGENDAR_ENTREVISTA)$/i.test(mensagem)) {\n    return 'Não consegui concluir essa ação. Pode repetir sua escolha de forma simples?';\n  }\n  return mensagem;\n})() }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        6240,
+        896
+      ],
+      "id": "0b48c9db-2d30-4d2b-97ba-da00c7b67ab9",
+      "name": "Send a text message2",
+      "credentials": {
+        "wahaApi": {
+          "id": "p3G9VOeOuySczl72",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "text"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        4128,
+        1184
+      ],
+      "id": "81b4a726-8de7-49f1-95cb-480859daf4b4",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "gGxdW1e4d63T5T9U",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d8763fdd-7c01-49e6-8c67-23b6bb35de06",
+              "name": "telefone",
+              "value": "={{ (() => {\n  const payload = $('Webhook').first().json.body?.payload ?? {};\n  const valores = [\n    payload?._data?.Info?.SenderAlt,\n    payload?.from,\n    payload?._data?.Info?.Sender,\n    payload?._data?.Info?.Chat,\n    payload?.participant\n  ];\n\n  const normalizar = (valor) => {\n    const original = String(valor ?? '').trim().replace(/:\\d+(?=@)/, '');\n    const numeros = original.replace(/@.+$/, '').replace(/\\D/g, '');\n    const ehLid = /@lid$/i.test(original);\n    const ehTelefone = /@(c\\.us|s\\.whatsapp\\.net)$/i.test(original);\n    let telefone = '';\n\n    if (numeros.length === 10 || numeros.length === 11) {\n      telefone = `55${numeros}`;\n    } else if ((numeros.length === 12 || numeros.length === 13) && numeros.startsWith('55')) {\n      telefone = numeros;\n    }\n\n    return { original, telefone, ehLid, ehTelefone };\n  };\n\n  const candidatos = valores\n    .map(normalizar)\n    .filter(item => item.telefone && !item.ehLid);\n\n  return (\n    candidatos.find(item => item.ehTelefone)\n    ?? candidatos.find(item => item.telefone.startsWith('55'))\n    ?? candidatos[0]\n  )?.telefone ?? '';\n})() }}",
+              "type": "string"
+            },
+            {
+              "id": "ef02c8ef-d5b6-4e5a-821c-8e539523bf52",
+              "name": "mensagem",
+              "value": "={{ String($('Webhook').first().json.body?.payload?.body ?? '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "42bc111e-e1f7-4808-b475-bccf15498cc3",
+              "name": "mensagem_id",
+              "value": "={{ String($('Webhook').first().json.body?.payload?.id ?? '') }}",
+              "type": "string"
+            },
+            {
+              "id": "2e9d57fb-735c-4e87-b5d9-9f00e0841db5",
+              "name": "has_media",
+              "value": "={{ $('Webhook').first().json.body?.payload?.hasMedia === true }}",
+              "type": "boolean"
+            },
+            {
+              "id": "660b4205-82a8-4af7-935b-06a15d6d9610",
+              "name": "mime_type",
+              "value": "={{ String($('Webhook').first().json.body?.payload?.media?.mimetype ?? '') }}",
+              "type": "string"
+            },
+            {
+              "id": "e8827f2e-c2a0-4acb-bdc4-ffa7484bfd56",
+              "name": "nome_arquivo",
+              "value": "={{ String($('Webhook').first().json.body?.payload?.media?.filename ?? '') }}",
+              "type": "string"
+            },
+            {
+              "id": "4f585f53-10f7-4a03-8406-dc389bdbca47",
+              "name": "media_url",
+              "value": "={{ String($('Webhook').first().json.body?.payload?.media?.url ?? '').replace('http://localhost:3000', 'https://projeto-waha.d7lmap.easypanel.host') }}",
+              "type": "string"
+            },
+            {
+              "id": "ea9af5a9-8741-47f6-a7c0-09274ce50e9a",
+              "name": "raw_from",
+              "value": "={{ String($('Webhook').first().json.body?.payload?.from ?? '') }}",
+              "type": "string"
+            },
+            {
+              "id": "1a6adb28-eeee-4fde-9539-4288ab08fe5a",
+              "name": "raw_sender_alt",
+              "value": "={{ String($('Webhook').first().json.body?.payload?._data?.Info?.SenderAlt ?? '') }}",
+              "type": "string"
+            },
+            {
+              "id": "e7d82083-d67a-46d1-a109-2ae3b074b851",
+              "name": "tipo_mensagem",
+              "value": "={{ (() => { const mime = String($('Webhook').first().json.body?.payload?.media?.mimetype ?? '').toLowerCase(); const hasMedia = $('Webhook').first().json.body?.payload?.hasMedia === true; const body = String($('Webhook').first().json.body?.payload?.body ?? '').trim(); if (hasMedia && (mime === 'application/pdf' || String($('Webhook').first().json.body?.payload?.media?.filename ?? '').toLowerCase().endsWith('.pdf'))) return 'PDF'; if (hasMedia && mime.startsWith('audio/')) return 'AUDIO'; if (hasMedia && mime.startsWith('image/')) return 'IMAGEM'; if (hasMedia) return 'MIDIA_OUTRA'; if (body) return 'TEXTO'; return 'VAZIA'; })() }}",
+              "type": "string"
+            },
+            {
+              "id": "266cda4d-33d6-4ef9-a4b0-252a864cea27",
+              "name": "payload_bruto",
+              "value": "={{ $('Webhook').first().json.body?.payload ?? {} }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        880
+      ],
+      "id": "4e9284a7-991f-4405-9a6f-9b6531c29c43",
+      "name": "Extrair telefone"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH mensagem_salva AS (\n  INSERT INTO mensagens (\n      candidato_id, quem, mensagem, mensagem_id, created_at\n  ) VALUES (\n      $1, 'USUARIO', $2, NULLIF($3::TEXT, ''), NOW()\n  )\n  ON CONFLICT (mensagem_id) DO NOTHING\n  RETURNING id\n), followups_respondidos AS (\n  UPDATE candidato_followups\n  SET status = 'RESPONDIDO', respondido_em = NOW(), updated_at = NOW()\n  WHERE candidato_id = $1\n    AND status = 'ENVIADO'\n    AND respondido_em IS NULL\n  RETURNING id\n), candidato_followup AS (\n  UPDATE candidatos\n  SET\n    followup_bloqueado = CASE\n      WHEN $2 ~* '(pare|não.*interesse|nao.*interesse|não.*chame|nao.*chame|remover.*contato|sair)' THEN TRUE\n      ELSE followup_bloqueado\n    END,\n    followup_pausado_at = CASE\n      WHEN $2 ~* '(pare|não.*interesse|nao.*interesse|não.*chame|nao.*chame|remover.*contato|sair)' THEN followup_pausado_at\n      ELSE NULL\n    END\n  WHERE id = $1\n  RETURNING id\n)\nSELECT COALESCE((SELECT id FROM mensagem_salva LIMIT 1), 0) AS id;",
+        "options": {
+          "queryReplacement": "={{ [\n  Number($('Buscar candidato').first().json.id),\n  String($('Extrair telefone').first().json.mensagem ?? '').trim(),\n  String($('Extrair telefone').first().json.mensagem_id ?? '')\n] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1328,
+        912
+      ],
+      "id": "571ec52d-594b-412f-bb4d-80491f1c7266",
+      "name": "Salvar mensagem usuário",
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n    COALESCE(\n        jsonb_agg(\n            to_jsonb(resultado)\n            ORDER BY resultado.created_at ASC\n        ),\n        '[]'::jsonb\n    ) AS mensagens\nFROM\n(\n    SELECT\n        id,\n        quem,\n        mensagem,\n        mensagem_id,\n        created_at\n    FROM mensagens\n    WHERE candidato_id = $1\n    ORDER BY created_at DESC\n    LIMIT 20\n) AS resultado;",
+        "options": {
+          "queryReplacement": "={{ [   Number($('Atualizar CEP se informado').first().json.id) ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2880,
+        896
+      ],
+      "id": "d58172ff-5034-4d31-97dd-8d92b0fd89f2",
+      "name": "Buscar últimas mensagens",
+      "alwaysOutputData": false,
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n    COALESCE(\n        jsonb_agg(\n            to_jsonb(resultado)\n            ORDER BY resultado.created_at ASC\n        ),\n        '[]'::jsonb\n    ) AS documentos,\n    EXISTS (\n        SELECT 1\n        FROM documentos d2\n        WHERE d2.candidato_id = $1\n          AND UPPER(COALESCE(d2.tipo, '')) = 'CTPS'\n    ) AS tem_ctps,\n    COUNT(*) FILTER (\n        WHERE UPPER(COALESCE(resultado.tipo, '')) = 'CTPS'\n    )::INTEGER AS quantidade_ctps,\n    EXISTS (\n        SELECT 1\n        FROM documentos d3\n        WHERE d3.candidato_id = $1\n          AND UPPER(COALESCE(d3.tipo, '')) = 'CURRICULO'\n    ) AS tem_curriculo,\n    COUNT(*) FILTER (\n        WHERE UPPER(COALESCE(resultado.tipo, '')) = 'CURRICULO'\n    )::INTEGER AS quantidade_curriculos\nFROM\n(\n    SELECT\n        id,\n        tipo,\n        titulo,\n        arquivo,\n        nome_arquivo,\n        mime_type,\n        tamanho_bytes,\n        (conteudo IS NOT NULL) AS disponivel_download,\n        resultado,\n        created_at\n    FROM documentos\n    WHERE candidato_id = $1\n    ORDER BY created_at DESC\n    LIMIT 20\n) AS resultado;",
+        "options": {
+          "queryReplacement": "={{ [   Number($('Atualizar CEP se informado').first().json.id) ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3104,
+        896
+      ],
+      "id": "c52be63f-0177-44a5-b24b-e753e6655b8c",
+      "name": "Buscar documentos",
+      "alwaysOutputData": false,
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n    COALESCE(\n        jsonb_agg(\n            to_jsonb(resultado)\n            ORDER BY resultado.created_at ASC\n        ),\n        '[]'::jsonb\n    ) AS eventos\nFROM\n(\n    SELECT\n        id,\n        evento,\n        descricao,\n        created_at\n    FROM eventos\n    WHERE candidato_id = $1\n    ORDER BY created_at DESC\n    LIMIT 20\n) AS resultado;",
+        "options": {
+          "queryReplacement": "={{ [   Number($('Atualizar CEP se informado').first().json.id) ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3328,
+        896
+      ],
+      "id": "21ae4b1d-1ca4-4688-ae11-ff6a7a59f555",
+      "name": "Buscar eventos",
+      "alwaysOutputData": false,
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "65b64a6b-7321-4e3f-a955-a8b913a95e51",
+              "name": "candidato",
+              "value": "={{ $('Atualizar CEP se informado').first().json }}",
+              "type": "object"
+            },
+            {
+              "id": "1c21ca64-d7b8-4a54-9d75-f473f76b6e92",
+              "name": "mensagens",
+              "value": "={{ $('Buscar últimas mensagens').first().json.mensagens ?? [] }}",
+              "type": "array"
+            },
+            {
+              "id": "4010ecc7-28fb-4826-88ab-382bff0efc17",
+              "name": "documentos",
+              "value": "={{ $('Buscar documentos').first().json.documentos ?? [] }}",
+              "type": "array"
+            },
+            {
+              "id": "04f97bf9-4d60-4bf3-82f3-eb9fd723cae3",
+              "name": "eventos",
+              "value": "={{ $('Buscar eventos').first().json.eventos ?? [] }}",
+              "type": "array"
+            },
+            {
+              "id": "fdcb2177-2858-46a5-b6c3-234b38bccf4c",
+              "name": "mensagem_atual",
+              "value": "={{ $('Assumir lote mais recente').first().json.mensagem_agrupada }}",
+              "type": "string"
+            },
+            {
+              "id": "9aa35141-0865-4b12-aa7a-e697bcd4871d",
+              "name": "vaga_atual",
+              "value": "={{ $('Buscar contexto de vagas').first().json.vaga_atual ?? null }}",
+              "type": "object"
+            },
+            {
+              "id": "d2bf40db-28d3-497a-a207-3f5061bafcc3",
+              "name": "vagas_ativas",
+              "value": "={{ $('Buscar contexto de vagas').first().json.vagas_ativas ?? [] }}",
+              "type": "array"
+            },
+            {
+              "id": "ffa380b0-669e-4d94-b123-914f9f128974",
+              "name": "codigo_vaga_informado",
+              "value": "={{ $('Vincular vaga informada').first().json.codigo_informado ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "b38b5774-3da5-482f-a14a-7185774580e3",
+              "name": "codigo_vaga_valido",
+              "value": "={{ $('Vincular vaga informada').first().json.codigo_informado ? Boolean($('Vincular vaga informada').first().json.codigo_valido) : null }}",
+              "type": "boolean"
+            },
+            {
+              "id": "cb03a919-453f-4085-9317-cce9df25a9be",
+              "name": "vaga_alterada_nesta_mensagem",
+              "value": "={{ Boolean($('Vincular vaga informada').first().json.vaga_alterada) }}",
+              "type": "boolean"
+            },
+            {
+              "id": "be8c4879-e931-4f35-ada9-fe446732f839",
+              "name": "opcoes_entrevista",
+              "value": "={{ $('Buscar opções de entrevista').first().json.opcoes_entrevista ?? [] }}",
+              "type": "array"
+            },
+            {
+              "id": "349bc7a0-3e36-4a90-b8ac-cca6c66bb472",
+              "name": "entrevista_atual",
+              "value": "={{ $('Buscar opções de entrevista').first().json.entrevista_atual ?? null }}",
+              "type": "object"
+            },
+            {
+              "id": "genesis-tem-ctps",
+              "name": "tem_ctps",
+              "value": "={{ Boolean($('Buscar documentos').first().json.tem_ctps) }}",
+              "type": "boolean"
+            },
+            {
+              "id": "genesis-tem-cep",
+              "name": "tem_cep",
+              "value": "={{ /^\\d{8}$/.test(String($('Atualizar CEP se informado').first().json.cep ?? '').replace(/\\D/g, '')) }}",
+              "type": "boolean"
+            },
+            {
+              "id": "genesis-pendencias-docs",
+              "name": "pendencias_documentais",
+              "value": "={{ (() => { const temCtps = Boolean($('Buscar documentos').first().json.tem_ctps); const temCep = /^\\d{8}$/.test(String($('Atualizar CEP se informado').first().json.cep ?? '').replace(/\\D/g, '')); return [!temCtps ? 'CTPS' : null, !temCep ? 'CEP' : null].filter(Boolean); })() }}",
+              "type": "array"
+            },
+            {
+              "id": "9ffb54db-7b75-41ac-b291-10e0af9d5ec8",
+              "name": "tem_curriculo",
+              "value": "={{ Boolean($('Buscar documentos').first().json.tem_curriculo) }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3680,
+        896
+      ],
+      "id": "dfebb876-3e0f-4246-87e7-23d05d5c2a4e",
+      "name": "Contexto IA",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH candidato_atual AS\n(\nINSERT INTO candidatos\n(\n    telefone,\n    status,\n    etapa,\n    canal,\n    created_at,\n    updated_at\n)\nVALUES\n(\n    $1,\n    'NOVO',\n    'PRIMEIRO_CONTATO',\n    'WhatsApp',\n    NOW(),\n    NOW()\n)\nON CONFLICT (telefone)\nDO UPDATE SET\n    updated_at = NOW()\nRETURNING\n    id,\n    telefone,\n    cpf,\n    nome,\n    sexo,\n    nome_mae,\n    data_nascimento,\n    cep,\n    vaga_id,\n    vaga,\n    status,\n    etapa,\n    experiencia_6_meses,\n    cargo,\n    tempo_experiencia,\n    aprovado,\n    apresentacao_profissional,\n    personalidade_resumo,\n    personalidade_tags,\n    personalidade_updated_at,\n        observacao_triagem,\n        motivo_reprovacao,\n        dias_faltantes_experiencia,\n        tempo_faltante_experiencia,\n        maior_experiencia_compativel_dias,\n        maior_experiencia_compativel_texto,\n        experiencia_minima_dias,\n        tempo_medio_empresas_dias,\n        tempo_medio_empresas_texto,\n        quantidade_vinculos_validos,\n        experiencias_ctps,\n        ctps_analisada_at\n),\nlog_vinculado AS\n(\n    UPDATE atendimento_logs\n    SET\n        candidato_id = (SELECT id FROM candidato_atual LIMIT 1),\n        status = 'CANDIDATO_VINCULADO',\n        updated_at = NOW()\n    WHERE mensagem_id = NULLIF($2::TEXT, '')\n    RETURNING id\n)\nSELECT * FROM candidato_atual;",
+        "options": {
+          "queryReplacement": "={{ [\n  String($('Extrair telefone').first().json.telefone ?? ''),\n  String($('Extrair telefone').first().json.mensagem_id ?? '')\n] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1152,
+        912
+      ],
+      "id": "9de9b2d6-07ba-43dc-a0f5-17f9da255294",
+      "name": "Buscar candidato",
+      "alwaysOutputData": false,
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.candidato.id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.4,
+      "position": [
+        4240,
+        1184
+      ],
+      "id": "ad909b7f-bce2-4624-8ae1-ec93386edd47",
+      "name": "Postgres Chat Memory1",
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH vaga_escolhida AS\n(\n    SELECT id, codigo, titulo\n    FROM vagas\n    WHERE UPPER(codigo) = UPPER(NULLIF(BTRIM($7::TEXT), ''))\n      AND status = 'ATIVA'\n      AND COALESCE(atendimento_chatbot, TRUE) IS TRUE\n    ORDER BY updated_at DESC\n    LIMIT 1\n),\ncandidato_atualizado AS\n(\n    UPDATE candidatos AS c\n    SET\n        nome = COALESCE(\n            NULLIF(BTRIM($13::TEXT), ''),\n            c.nome\n        ),\n\n        etapa = $2,\n        status = $3,\n\n        experiencia_6_meses = CASE\n            WHEN EXISTS (SELECT 1 FROM vaga_escolhida)\n                 AND c.vaga_id IS DISTINCT FROM (SELECT id FROM vaga_escolhida)\n            THEN $6::BOOLEAN\n            ELSE COALESCE($6::BOOLEAN, c.experiencia_6_meses)\n        END,\n\n        aprovado = CASE\n            WHEN EXISTS (SELECT 1 FROM vaga_escolhida)\n                 AND c.vaga_id IS DISTINCT FROM (SELECT id FROM vaga_escolhida)\n            THEN NULL\n            ELSE c.aprovado\n        END,\n\n        vaga_id = COALESCE((SELECT id FROM vaga_escolhida), c.vaga_id),\n        vaga = COALESCE((SELECT titulo FROM vaga_escolhida), c.vaga),\n        vaga_escolhida_at = CASE\n            WHEN EXISTS (SELECT 1 FROM vaga_escolhida)\n             AND c.vaga_id IS DISTINCT FROM (SELECT id FROM vaga_escolhida)\n            THEN NOW()\n            ELSE c.vaga_escolhida_at\n        END,\n\n        apresentacao_profissional = COALESCE(\n            NULLIF(BTRIM($8::TEXT), ''),\n            c.apresentacao_profissional\n        ),\n\n        personalidade_resumo = COALESCE(\n            NULLIF(BTRIM($9::TEXT), ''),\n            c.personalidade_resumo\n        ),\n\n        personalidade_tags = CASE\n            WHEN jsonb_array_length(COALESCE($10::JSONB, '[]'::JSONB)) > 0\n            THEN $10::JSONB\n            ELSE c.personalidade_tags\n        END,\n\n        personalidade_updated_at = CASE\n            WHEN NULLIF(BTRIM($9::TEXT), '') IS NOT NULL\n              OR jsonb_array_length(COALESCE($10::JSONB, '[]'::JSONB)) > 0\n            THEN NOW()\n            ELSE c.personalidade_updated_at\n        END,\n\n        updated_at = NOW()\n    WHERE c.id = $1\n    RETURNING\n        c.id, c.telefone, c.nome, c.etapa, c.status,\n        c.experiencia_6_meses, c.aprovado, c.vaga_id, c.vaga,\n        c.apresentacao_profissional, c.personalidade_resumo,\n        c.personalidade_tags\n),\nmensagem_salva AS\n(\n    INSERT INTO mensagens (candidato_id, quem, mensagem, created_at)\n    SELECT id, 'IA', $4, NOW()\n    FROM candidato_atualizado\n    WHERE COALESCE($11::BOOLEAN, FALSE) IS FALSE\n      AND $12::INTEGER IS NULL\n      AND NOT ($3 = 'REPROVADO' AND $2 IN ('REPROVADO_PRE_TRIAGEM', 'REPROVADO_TRIAGEM'))\n    RETURNING id\n),\nevento_salvo AS\n(\n    INSERT INTO eventos (candidato_id, evento, descricao, created_at)\n    SELECT id, $5, $4, NOW()\n    FROM candidato_atualizado\n    WHERE NULLIF(BTRIM($5::TEXT), '') IS NOT NULL\n    RETURNING id\n)\nSELECT\n    c.*,\n    COALESCE(\n        (SELECT codigo FROM vaga_escolhida),\n        (SELECT v.codigo FROM vagas v WHERE v.id = c.vaga_id)\n    ) AS codigo_vaga,\n    $4::TEXT AS mensagem,\n    $5::TEXT AS evento,\n    COALESCE($11::BOOLEAN, FALSE) AS solicitar_opcoes_entrevista,\n    $12::INTEGER AS opcao_horario_escolhida\nFROM candidato_atualizado c;",
+        "options": {
+          "queryReplacement": "={{ [\n  $json.candidato_id,\n  $json.nova_etapa,\n  $json.novo_status,\n  $json.mensagem,\n  $json.evento,\n  $json.experiencia_6_meses,\n  $json.vaga_escolhida,\n  $json.apresentacao_profissional,\n  $json.personalidade_resumo,\n  JSON.stringify($json.personalidade_tags ?? []),\n  $json.solicitar_opcoes_entrevista,\n  $json.opcao_horario_escolhida,\n  $json.nome_informado\n] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4944,
+        896
+      ],
+      "id": "8bf17b3d-524a-4900-af30-c87b8f378445",
+      "name": "Persistir resposta IA",
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6eee5115-336f-4b3b-bcac-55dbdd1c3a32",
+              "leftValue": "={{\n  $json.body?.event === 'message'\n  &&\n  $json.body?.payload?.fromMe !== true\n  &&\n  $json.body?.payload?._data?.Info?.IsGroup !== true\n  &&\n  !String(\n    $json.body?.payload?._data?.Info?.Chat\n    ?? $json.body?.payload?.from\n    ?? ''\n  ).endsWith('@g.us')\n  &&\n  String(\n    $json.body?.payload?._data?.Info?.Chat\n    ?? $json.body?.payload?.from\n    ?? ''\n  ) !== 'status@broadcast'\n  &&\n  !String(\n    $json.body?.payload?._data?.Info?.Chat\n    ?? $json.body?.payload?.from\n    ?? ''\n  ).endsWith('@newsletter')\n}}",
+              "rightValue": "=",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -80,
+        896
+      ],
+      "id": "6c28bacc-1d10-412d-ad78-3048e4b26bb3",
+      "name": "É mensagem privada recebida?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ce23e677-56e9-463d-92f4-1f8c7691540c",
+              "leftValue": "={{\n  $('Extrair telefone').first().json.has_media === true\n  &&\n  (\n    String(\n      $('Extrair telefone').first().json.mime_type\n      ?? ''\n    ).toLowerCase() === 'application/pdf'\n    ||\n    String(\n      $('Extrair telefone').first().json.nome_arquivo\n      ?? ''\n    ).toLowerCase().endsWith('.pdf')\n  )\n}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        816,
+        880
+      ],
+      "id": "0a7405e4-0f5d-4580-b964-65258afe5934",
+      "name": "É PDF?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3d5c87cb-fd02-4a0b-92d8-cde7b74fbe4e",
+              "leftValue": "={{\n  $('Extrair telefone').first().json.has_media !== true\n  &&\n  String(\n    $('Extrair telefone').first().json.mensagem\n    ?? ''\n  ).trim().length > 0\n}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        704,
+        1088
+      ],
+      "id": "aa4f867a-df6d-46af-bb4a-22f461e000b2",
+      "name": "É mensagem de texto?"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH candidato_atual AS\n(\n    INSERT INTO candidatos\n    (\n        telefone,\n        status,\n        etapa,\n        canal,\n        created_at,\n        updated_at\n    )\n    VALUES\n    (\n        $1,\n        'EM_PROCESSO',\n        'AGUARDANDO_CTPS_CEP',\n        'WhatsApp',\n        NOW(),\n        NOW()\n    )\n    ON CONFLICT (telefone)\n    DO UPDATE SET\n        updated_at = NOW()\n    RETURNING\n        id,\n        telefone,\n        cpf,\n        nome,\n        sexo,\n        nome_mae,\n        data_nascimento,\n        cep,\n        vaga_id,\n        vaga,\n        cargo,\n        tempo_experiencia,\n        aprovado,\n        status,\n        etapa,\n        apresentacao_profissional,\n        personalidade_resumo,\n        personalidade_tags,\n        personalidade_updated_at,\n        observacao_triagem,\n        motivo_reprovacao,\n        dias_faltantes_experiencia,\n        tempo_faltante_experiencia,\n        maior_experiencia_compativel_dias,\n        maior_experiencia_compativel_texto,\n        experiencia_minima_dias,\n        tempo_medio_empresas_dias,\n        tempo_medio_empresas_texto,\n        quantidade_vinculos_validos,\n        experiencias_ctps,\n        ctps_analisada_at\n),\nlog_vinculado AS\n(\n    UPDATE atendimento_logs\n    SET\n        candidato_id = (SELECT id FROM candidato_atual LIMIT 1),\n        status = 'CANDIDATO_VINCULADO',\n        updated_at = NOW()\n    WHERE mensagem_id = NULLIF($2::TEXT, '')\n    RETURNING id\n)\nSELECT\n    c.*,\n\n    COALESCE(\n        (\n            SELECT jsonb_build_object(\n                'id', v.id,\n                'empresa', e.nome,\n                'codigo', v.codigo,\n                'titulo', v.titulo,\n                'cargo', v.cargo,\n                'descricao', v.descricao,\n                'cidade', v.cidade,\n                'estado', v.estado,\n                'bairro', v.bairro,\n                'endereco_referencia', v.endereco_referencia,\n                'tipo_contrato', v.tipo_contrato,\n                'modalidade', v.modalidade,\n                'escala', v.escala,\n                'horario', v.horario,\n                'salario', v.salario,\n                'beneficios', v.beneficios,\n                'escolaridade_minima', v.escolaridade_minima,\n                'experiencia_minima_meses', v.experiencia_minima_meses,\n                'aceita_sem_experiencia', v.aceita_sem_experiencia,\n                'exigir_experiencia_compativel', v.exigir_experiencia_compativel,\n                'cargos_compativeis', v.cargos_compativeis,\n                'cbos_compativeis', v.cbos_compativeis,\n                'requisitos_obrigatorios', v.requisitos_obrigatorios,\n                'requisitos_desejaveis', v.requisitos_desejaveis,\n                'formulario_url', v.formulario_url,\n                'status', v.status\n            )\n            FROM vagas v\n            JOIN empresas e\n              ON e.id = v.empresa_id\n            WHERE v.id = c.vaga_id\n            LIMIT 1\n        ),\n        'null'::jsonb\n    ) AS vaga_atual,\n\n    COALESCE(\n        (\n            SELECT jsonb_agg(\n                jsonb_build_object(\n                    'id', lista.id,\n                    'codigo', lista.codigo,\n                    'titulo', lista.titulo,\n                    'cargo', lista.cargo,\n                    'cidade', lista.cidade,\n                    'estado', lista.estado,\n                    'bairro', lista.bairro,\n                    'experiencia_minima_meses', lista.experiencia_minima_meses,\n                    'aceita_sem_experiencia', lista.aceita_sem_experiencia\n                )\n                ORDER BY lista.updated_at DESC, lista.id DESC\n            )\n            FROM\n            (\n                SELECT v.*\n                FROM vagas v\n                JOIN empresas e\n                  ON e.id = v.empresa_id\n                WHERE v.status = 'ATIVA'\n                  AND COALESCE(v.atendimento_chatbot, TRUE) IS TRUE\n                  AND e.ativo IS TRUE\n                ORDER BY v.updated_at DESC, v.id DESC\n                LIMIT 20\n            ) AS lista\n        ),\n        '[]'::jsonb\n    ) AS vagas_ativas\n\nFROM candidato_atual c;",
+        "options": {
+          "queryReplacement": "={{ [\n  String($('Extrair telefone').first().json.telefone ?? ''),\n  String($('Extrair telefone').first().json.mensagem_id ?? '')\n] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1024,
+        640
+      ],
+      "id": "80a7f2e8-829b-4d09-a0c6-2c0d89870e5c",
+      "name": "Buscar candidato PDF",
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH mensagem_salva AS\n(\n    INSERT INTO mensagens\n    (\n        candidato_id,\n        quem,\n        mensagem,\n        mensagem_id,\n        created_at\n    )\n    VALUES\n    (\n        $1,\n        'USUARIO',\n        $2,\n        NULLIF($3::TEXT, ''),\n        NOW()\n    )\n    ON CONFLICT (mensagem_id)\n    DO NOTHING\n    RETURNING id\n),\ndocumento_existente AS\n(\n    SELECT id\n    FROM documentos\n    WHERE candidato_id = $1\n      AND COALESCE(nome_arquivo, arquivo, '') = $4\n      AND created_at >= NOW() - INTERVAL '30 minutes'\n    ORDER BY created_at DESC, id DESC\n    LIMIT 1\n),\ndocumento_salvo AS\n(\n    INSERT INTO documentos\n    (\n        candidato_id,\n        tipo,\n        titulo,\n        arquivo,\n        nome_arquivo,\n        mime_type,\n        resultado,\n        created_at\n    )\n    SELECT\n        $1,\n        'PENDENTE',\n        'Documento em classificação',\n        $4,\n        $4,\n        COALESCE(NULLIF($5::TEXT, ''), 'application/pdf'),\n        '{\"status\":\"PROCESSANDO\",\"classificacao\":\"PENDENTE\"}'::JSONB,\n        NOW()\n    WHERE NOT EXISTS (SELECT 1 FROM documento_existente)\n    RETURNING id\n),\nlog_atualizado AS\n(\n    UPDATE atendimento_logs\n    SET\n        candidato_id = $1,\n        status = 'PDF_RECEBIDO',\n        detalhe = 'PDF recebido e aguardando classificação.',\n        updated_at = NOW()\n    WHERE mensagem_id = NULLIF($3::TEXT, '')\n    RETURNING id\n)\nSELECT\n    COALESCE((SELECT id FROM mensagem_salva LIMIT 1), 0) AS mensagem_id,\n    COALESCE(\n        (SELECT id FROM documento_salvo LIMIT 1),\n        (SELECT id FROM documento_existente LIMIT 1)\n    ) AS documento_id;",
+        "options": {
+          "queryReplacement": "={{ [\n  Number($('Buscar candidato PDF').first().json.id),\n  '[DOCUMENTO PDF] ' + String($('Extrair telefone').first().json.nome_arquivo ?? 'documento.pdf'),\n  String($('Extrair telefone').first().json.mensagem_id ?? ''),\n  String($('Extrair telefone').first().json.nome_arquivo ?? 'documento.pdf'),\n  String($('Extrair telefone').first().json.mime_type ?? 'application/pdf')\n] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1440,
+        640
+      ],
+      "id": "cae6c4d5-0faa-4772-b154-ee89643749c0",
+      "name": "Salvar recebimento PDF",
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Extrair telefone').first().json.media_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Api-Key",
+              "value": "kcih311h4ymkn5p3j8mzxakaq0u0h95y"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "ctps"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1648,
+        432
+      ],
+      "id": "399f722a-07c3-4e6a-b636-b40d960957ab",
+      "name": "Baixar PDF WAHA"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\n\nconst arquivo = item.binary?.ctps;\n\nif (!arquivo) {\n  throw new Error(\n    'O campo binário \"ctps\" não foi criado. O PDF não foi baixado corretamente.'\n  );\n}\n\nreturn [\n  {\n    json: {\n      download_ok: true,\n      campos_binarios: Object.keys(item.binary ?? {}),\n      nome_arquivo: arquivo.fileName ?? null,\n      mime_type: arquivo.mimeType ?? null,\n      tamanho: arquivo.fileSize ?? null\n    },\n    binary: item.binary\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1856,
+        432
+      ],
+      "id": "9c6286b6-7f21-4497-9081-5c902f4e8943",
+      "name": "Validar download"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mistral.ai/v1/files",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer SpugstixtRA2cOCHCsxQZeTjZG8xkqBy"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "purpose",
+              "value": "ocr"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "ctps"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2272,
+        432
+      ],
+      "id": "31c489a9-729e-47c3-b61c-9c052bd41993",
+      "name": "OCR - Enviar PDF"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.mistral.ai/v1/files/{{ $json.id }}/url",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "expiry",
+              "value": "24"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer SpugstixtRA2cOCHCsxQZeTjZG8xkqBy"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2480,
+        432
+      ],
+      "id": "7c4ac270-1840-4e43-9046-b73f614dddfe",
+      "name": "OCR - Consultar processamento"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mistral.ai/v1/ocr",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer SpugstixtRA2cOCHCsxQZeTjZG8xkqBy"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"mistral-ocr-latest\",\n  \"document\": {\n    \"type\": \"document_url\",\n    \"document_url\": \"{{ $json.url }}\"\n  },\n  \"table_format\": \"html\",\n  \"include_image_base64\": true\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2688,
+        432
+      ],
+      "id": "a70d77de-6218-4c4c-9e58-00440646fdd7",
+      "name": "OCR - Obter texto"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2912,
+        736
+      ],
+      "id": "2b9cf573-ca25-4fc8-9efe-9f5192baa84a",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "gGxdW1e4d63T5T9U",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.pages.map((page, index) => `### Página ${index + 1}\\n${page.markdown}`).join('\\n\\n') }}",
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"nome\": {\n      \"type\": \"string\"\n    },\n    \"cpf\": {\n      \"type\": \"string\"\n    },\n    \"nome_mae\": {\n      \"type\": \"string\"\n    },\n    \"data_nascimento\": {\n      \"type\": \"string\"\n    },\n    \"experiencias\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"periodo\": {\n            \"type\": \"string\"\n          },\n          \"empregador\": {\n            \"type\": \"string\"\n          },\n          \"cargo\": {\n            \"type\": \"string\"\n          },\n          \"cbo\": {\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"periodo\",\n          \"empregador\",\n          \"cargo\",\n          \"cbo\"\n        ],\n        \"additionalProperties\": false\n      }\n    }\n  },\n  \"required\": [\n    \"nome\",\n    \"cpf\",\n    \"nome_mae\",\n    \"data_nascimento\",\n    \"experiencias\"\n  ],\n  \"additionalProperties\": false\n}",
+        "options": {
+          "systemPromptTemplate": "Você é um extrator de dados da Carteira de Trabalho Digital (CTPS).\n\nAnalise todas as páginas e retorne somente o JSON do schema.\nNão aprove, não reprove, não calcule tempo e não invente informações.\nCampos ausentes ou ilegíveis devem ser string vazia. Nunca use null.\n\nDADOS PESSOAIS — extrair uma única vez:\n- nome completo;\n- CPF;\n- nome da mãe;\n- data de nascimento.\n\nEXPERIÊNCIAS:\nCada vínculo normalmente começa com o período principal no formato DD/MM/AAAA - DD/MM/AAAA, seguido de Empregador.\nPara cada vínculo, extraia:\n- periodo: somente o período principal do vínculo;\n- empregador: nome do empregador;\n- cargo: cargo principal do vínculo;\n- cbo: código CBO do cargo ou função, preferencialmente no formato 0000-00.\n\nNão use datas de anotações, salário, rescisão, projeção de aviso ou alterações internas como período do vínculo.\nQuando houver mais de um cargo ou CBO dentro do mesmo vínculo, use o cargo/CBO mais recente claramente associado àquele vínculo.\nExtraia todos os vínculos visíveis. Não faça cálculos."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        3520,
+        336
+      ],
+      "id": "667f0c6b-f391-4e2f-9eec-7bfa28780652",
+      "name": "Extrair dados CTPS"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH candidato_atualizado AS\n(\n    UPDATE candidatos\n    SET\n        cpf = COALESCE(NULLIF($2::TEXT, ''), cpf),\n        nome = COALESCE(NULLIF($3::TEXT, ''), nome),\n        sexo = COALESCE(NULLIF($4::TEXT, ''), sexo),\n        nome_mae = COALESCE(NULLIF($5::TEXT, ''), nome_mae),\n        data_nascimento = COALESCE(NULLIF($6::TEXT, '')::DATE, data_nascimento),\n        cargo = COALESCE(NULLIF($7::TEXT, ''), cargo),\n        tempo_experiencia = COALESCE(NULLIF($8::TEXT, ''), tempo_experiencia),\n        aprovado = $9::BOOLEAN,\n        status = $10,\n        etapa = $11,\n        observacao_triagem = NULLIF($23::TEXT, ''),\n        motivo_reprovacao = NULLIF($24::TEXT, ''),\n        dias_faltantes_experiencia = $25::INTEGER,\n        meses_faltantes_experiencia = $26::NUMERIC,\n        tempo_faltante_experiencia = NULLIF($27::TEXT, ''),\n        maior_experiencia_compativel_dias = $28::INTEGER,\n        maior_experiencia_compativel_texto = NULLIF($29::TEXT, ''),\n        experiencia_minima_dias = $30::INTEGER,\n        tempo_medio_empresas_dias = $31::INTEGER,\n        tempo_medio_empresas_texto = NULLIF($32::TEXT, ''),\n        mediana_permanencia_dias = $33::INTEGER,\n        mediana_permanencia_texto = NULLIF($34::TEXT, ''),\n        quantidade_vinculos_validos = $35::INTEGER,\n        experiencias_ctps = COALESCE($36::JSONB, '[]'::JSONB),\n        ctps_analisada_at = NOW(),\n        updated_at = NOW()\n    WHERE id = $1\n    RETURNING id, telefone\n),\ndocumento_atualizado AS\n(\n    UPDATE documentos AS d\n    SET\n        tipo = 'CTPS',\n        titulo = 'CTPS Digital',\n\n        arquivo = $12,\n\n        nome_arquivo = COALESCE(\n            NULLIF($19::TEXT, ''),\n            $12\n        ),\n\n        mime_type = COALESCE(\n            NULLIF($20::TEXT, ''),\n            'application/pdf'\n        ),\n\n        tamanho_bytes = NULLIF(\n            $21::TEXT,\n            ''\n        )::BIGINT,\n\n        conteudo = CASE\n            WHEN NULLIF($22::TEXT, '') IS NULL\n            THEN d.conteudo\n            ELSE decode($22::TEXT, 'base64')\n        END,\n\n        resultado = $13\n\n    WHERE d.id = $37\n      AND d.candidato_id = (\n          SELECT id FROM candidato_atualizado LIMIT 1\n      )\n\n    RETURNING d.id\n),\n\ndocumento_salvo AS\n(\n    INSERT INTO documentos\n    (\n        candidato_id,\n        tipo,\n        titulo,\n        arquivo,\n        nome_arquivo,\n        mime_type,\n        tamanho_bytes,\n        conteudo,\n        resultado,\n        created_at\n    )\n\n    SELECT\n        id,\n        'CTPS',\n        'CTPS Digital',\n        $12,\n\n        COALESCE(\n            NULLIF($19::TEXT, ''),\n            $12\n        ),\n\n        COALESCE(\n            NULLIF($20::TEXT, ''),\n            'application/pdf'\n        ),\n\n        NULLIF(\n            $21::TEXT,\n            ''\n        )::BIGINT,\n\n        CASE\n            WHEN NULLIF($22::TEXT, '') IS NULL\n            THEN NULL\n            ELSE decode($22::TEXT, 'base64')\n        END,\n\n        $13,\n        NOW()\n\n    FROM candidato_atualizado\n\n    WHERE NOT EXISTS\n    (\n        SELECT 1\n        FROM documento_atualizado\n    )\n\n    RETURNING id\n),\n\nevento_salvo AS\n(\n    INSERT INTO eventos (candidato_id, evento, descricao, created_at)\n    SELECT id, $14, $15, NOW()\n    FROM candidato_atualizado\n    RETURNING id\n),\nestado_atualizado AS\n(\n    INSERT INTO candidato_estado\n    (candidato_id, etapa, proxima_acao, ultima_resposta, aguardando, ultima_interacao)\n    SELECT id, $11, $16, $18, $17, NOW()\n    FROM candidato_atualizado\n    ON CONFLICT (candidato_id)\n    DO UPDATE SET\n        etapa = EXCLUDED.etapa,\n        proxima_acao = EXCLUDED.proxima_acao,\n        ultima_resposta = EXCLUDED.ultima_resposta,\n        aguardando = EXCLUDED.aguardando,\n        ultima_interacao = NOW()\n    RETURNING candidato_id\n),\nlog_atualizado AS\n(\n    UPDATE atendimento_logs\n    SET\n        candidato_id = (SELECT id FROM candidato_atualizado LIMIT 1),\n        status = 'CTPS_ANALISADA',\n        detalhe = $15,\n        updated_at = NOW()\n    WHERE mensagem_id = NULLIF($38::TEXT, '')\n    RETURNING id\n)\nSELECT\n    candidato_atualizado.id AS candidato_id,\n    candidato_atualizado.telefone,\n    $10::TEXT AS status,\n    $11::TEXT AS etapa,\n    $13::TEXT AS resultado,\n    $18::TEXT AS mensagem\nFROM candidato_atualizado;",
+        "options": {
+          "queryReplacement": "={{ [\n  $json.candidato_id,\n  $json.cpf,\n  $json.nome,\n  $json.sexo,\n  $json.nome_mae,\n  $json.data_nascimento,\n  $json.cargo,\n  $json.tempo_experiencia,\n  $json.aprovado,\n  $json.status,\n  $json.etapa,\n  $json.arquivo,\n  JSON.stringify($json.analise_ctps ?? {}),\n  $json.evento,\n  $json.descricao_evento,\n  $json.proxima_acao,\n  $json.aguardando,\n  $json.mensagem,\n  $json.nome_arquivo_documento,\n  $json.mime_type_documento,\n  $json.tamanho_bytes_documento,\n  $json.arquivo_base64,\n  $json.observacao_triagem,\n  $json.motivo_reprovacao,\n  $json.dias_faltantes_experiencia,\n  $json.meses_faltantes_experiencia,\n  $json.tempo_faltante_experiencia,\n  $json.maior_experiencia_compativel_dias,\n  $json.maior_experiencia_compativel_texto,\n  $json.experiencia_minima_dias,\n  $json.tempo_medio_empresas_dias,\n  $json.tempo_medio_empresas_texto,\n  $json.mediana_permanencia_dias,\n  $json.mediana_permanencia_texto,\n  $json.quantidade_vinculos_validos,\n  JSON.stringify($json.experiencias_ctps ?? []),\n  Number($('Salvar recebimento PDF').first().json.documento_id),\n  String($('Extrair telefone').first().json.mensagem_id ?? '')\n] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4144,
+        336
+      ],
+      "id": "4ff453d1-98bd-4a99-bb63-2ba8bbeb6db4",
+      "name": "Persistir análise CTPS",
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Start Typing",
+        "session": "={{ $('Webhook').item.json.body.session }}",
+        "chatId": "={{ $('Webhook').item.json.body.payload._data.Info.SenderAlt }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        4352,
+        336
+      ],
+      "id": "9564658b-e4d9-42ef-9eec-0bc440787553",
+      "name": "Start Typing CTPS",
+      "credentials": {
+        "wahaApi": {
+          "id": "p3G9VOeOuySczl72",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4560,
+        336
+      ],
+      "id": "dc1c1d9d-30d4-41ee-8406-04f7c469379a",
+      "name": "Wait CTPS",
+      "webhookId": "58b2be7a-b060-409a-9a69-aca5cb0e13a7"
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "={{ $('Webhook').item.json.body.session }}",
+        "chatId": "={{\n  $('Persistir análise CTPS').first().json.telefone + '@c.us'\n}}",
+        "reply_to": "=",
+        "text": "={{ $('Persistir análise CTPS').first().json.mensagem }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        4768,
+        336
+      ],
+      "id": "5f89fc2d-e933-4fba-9d51-9ed0f0b64d7a",
+      "name": "Enviar resultado CTPS",
+      "credentials": {
+        "wahaApi": {
+          "id": "p3G9VOeOuySczl72",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO mensagens\n(\n    candidato_id,\n    quem,\n    mensagem,\n    created_at\n)\nVALUES\n(\n    $1,\n    'IA',\n    $2,\n    NOW()\n)\nRETURNING id;",
+        "options": {
+          "queryReplacement": "={{ [   Number(     $('Persistir análise CTPS')       .first()       .json       .candidato_id   ),   $('Persistir análise CTPS')     .first()     .json     .mensagem ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4976,
+        336
+      ],
+      "id": "1ef2fbde-e4c2-4a13-bdd7-c8eec9b34583",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE candidatos\nSET\n    cep = CASE\n        WHEN LENGTH($2::TEXT) = 8\n        THEN $2\n        ELSE cep\n    END,\n\n    etapa = CASE\n        WHEN LENGTH($2::TEXT) = 8\n             AND aprovado IS TRUE\n             AND etapa = 'AGUARDANDO_CEP'\n        THEN 'AGUARDANDO_APRESENTACAO'\n\n        WHEN LENGTH($2::TEXT) = 8\n             AND etapa = 'AGUARDANDO_CTPS_CEP'\n        THEN 'AGUARDANDO_CTPS'\n\n        ELSE etapa\n    END,\n\n    updated_at = CASE\n        WHEN LENGTH($2::TEXT) = 8\n        THEN NOW()\n        ELSE updated_at\n    END\n\nWHERE id = $1\n\nRETURNING\n    id,\n    telefone,\n    cpf,\n    nome,\n    sexo,\n    nome_mae,\n    data_nascimento,\n    cep,\n    vaga_id,\n    vaga,\n    cargo,\n    tempo_experiencia,\n    aprovado,\n    status,\n    experiencia_6_meses,\n    etapa,\n    apresentacao_profissional,\n    personalidade_resumo,\n    personalidade_tags,\n    personalidade_updated_at,\n        observacao_triagem,\n        motivo_reprovacao,\n        dias_faltantes_experiencia,\n        tempo_faltante_experiencia,\n        maior_experiencia_compativel_dias,\n        maior_experiencia_compativel_texto,\n        experiencia_minima_dias,\n        tempo_medio_empresas_dias,\n        tempo_medio_empresas_texto,\n        quantidade_vinculos_validos,\n        experiencias_ctps,\n        ctps_analisada_at;\n",
+        "options": {
+          "queryReplacement": "={{ [\n  Number($('Buscar candidato').first().json.id),\n\n  (\n    String(\n      $('Assumir lote mais recente')\n        .first()\n        .json\n        .mensagem_agrupada\n        ?? ''\n    )\n    .match(/\\b\\d{5}-?\\d{3}\\b/)?.[0]\n    ?? ''\n  ).replace(/\\D/g, '')\n] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2464,
+        896
+      ],
+      "id": "c8574bbb-8b6e-4656-ac5d-34e887d2c0db",
+      "name": "Atualizar CEP se informado",
+      "alwaysOutputData": false,
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Start Typing",
+        "session": "={{ $('Webhook').first().json.body?.session ?? 'whats_junior' }}",
+        "chatId": "={{ String($('Extrair telefone').first().json.telefone ?? '').replace(/\\D/g, '') + '@c.us' }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        960,
+        1184
+      ],
+      "id": "a3b815ec-9f8c-4f6d-90a0-9010c2c8ed4e",
+      "name": "Start Typing3",
+      "credentials": {
+        "wahaApi": {
+          "id": "p3G9VOeOuySczl72",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1248,
+        1184
+      ],
+      "id": "75b86fd3-3542-44b8-ae9d-c8b60c24afae",
+      "name": "Wait3",
+      "webhookId": "58b2be7a-b060-409a-9a69-aca5cb0e13a7"
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "={{ $('Webhook').first().json.body?.session ?? 'whats_junior' }}",
+        "chatId": "={{ String($('Extrair telefone').first().json.telefone ?? '').replace(/\\D/g, '') + '@c.us' }}",
+        "reply_to": "=",
+        "text": "={{ (() => { const tipo = String($('Extrair telefone').first().json.tipo_mensagem ?? 'MIDIA_OUTRA'); if (tipo === 'AUDIO') return 'No momento não conseguimos processar áudios. Por favor, escreva sua mensagem em texto. Para documentos, envie a CTPS Digital como Documento PDF.'; if (tipo === 'IMAGEM') return 'No momento não aceitamos fotos, prints ou imagens. Por favor, envie sua mensagem em texto. Para continuar a análise, a CTPS Digital deve ser enviada como Documento PDF.'; return 'Esse tipo de arquivo ainda não é aceito. Envie sua mensagem em texto ou a CTPS Digital como Documento PDF.'; })() }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        1472,
+        1184
+      ],
+      "id": "6061e182-efca-4549-9ffa-c3b5c81ad86d",
+      "name": "Send a text message3",
+      "credentials": {
+        "wahaApi": {
+          "id": "p3G9VOeOuySczl72",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const entrada =\n  $('Extrair dados CTPS').first().json;\n\nlet extraido =\n  entrada.output ?? entrada;\n\nif (typeof extraido === 'string') {\n  extraido = JSON.parse(extraido);\n}\n\nif (\n  extraido.output &&\n  typeof extraido.output === 'object'\n) {\n  extraido = extraido.output;\n}\n\nconst candidatoInicial =\n  $('Buscar candidato PDF').first().json;\n\nconst candidatoAtual =\n  $('Recarregar CEP antes da análise').first().json;\n\nconst candidato = {\n  ...candidatoInicial,\n\n  cep:\n    candidatoAtual.cep\n    ?? candidatoInicial.cep\n    ?? null\n};\nconst dadosArquivo = $('Extrair telefone').first().json;\nconst dadosDocumento = $('Preparar PDF para armazenamento').first().json;\nconst vagaAtual = candidato.vaga_atual && typeof candidato.vaga_atual === 'object' ? candidato.vaga_atual : null;\nconst vagasAtivas = Array.isArray(candidato.vagas_ativas) ? candidato.vagas_ativas : [];\nconst vagaEstaAtiva = vagaAtual?.status === 'ATIVA';\nconst minimoMeses = vagaEstaAtiva ? Math.max(0, Number(vagaAtual.experiencia_minima_meses ?? 0)) : 0;\nconst aceitaSemExperiencia = vagaEstaAtiva && (vagaAtual.aceita_sem_experiencia === true || minimoMeses === 0);\nconst exigirCompatibilidade = vagaEstaAtiva && vagaAtual.exigir_experiencia_compativel !== false;\nconst MINIMO_DIAS = Math.max(0, Math.ceil(minimoMeses * 365 / 12));\nconst DIA = 86400000;\n\nfunction texto(v) { const s = String(v ?? '').trim(); return s || null; }\nfunction numeros(v) { const s = String(v ?? '').replace(/\\D/g, ''); return s || null; }\nfunction norm(v) {\n  return String(v ?? '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toUpperCase()\n    .replace(/\\bAUX\\.?\\b/g, 'AUXILIAR')\n    .replace(/\\bSERV\\.?\\b/g, 'SERVICO')\n    .replace(/\\bLIMP\\.?\\b/g, 'LIMPEZA')\n    .replace(/\\bHIG\\.?\\b/g, 'HIGIENIZACAO')\n    .replace(/[^A-Z0-9]+/g, ' ')\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\nfunction normalizarData(v) {\n  if (!v) return null;\n  const s = String(v).trim();\n  if (/^\\d{4}-\\d{2}-\\d{2}$/.test(s)) return s;\n  const m = s.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);\n  return m ? `${m[3]}-${m[2]}-${m[1]}` : null;\n}\nfunction dataBR(v) {\n  const m = String(v ?? '').trim().match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);\n  if (!m) return null;\n  const d = new Date(Date.UTC(Number(m[3]), Number(m[2]) - 1, Number(m[1])));\n  return Number.isNaN(d.getTime()) ? null : d;\n}\nfunction hojeUTC() { const a = new Date(); return new Date(Date.UTC(a.getUTCFullYear(), a.getUTCMonth(), a.getUTCDate())); }\nfunction periodo(v) {\n  const m = String(v ?? '').trim().match(/(\\d{2}\\/\\d{2}\\/\\d{4})\\s*-\\s*(?:(\\d{2}\\/\\d{2}\\/\\d{4})|(ATUAL|PRESENTE|EM ABERTO))/i);\n  if (!m) return null;\n  const inicio = dataBR(m[1]);\n  let fim = m[2] ? dataBR(m[2]) : hojeUTC();\n  if (!inicio || !fim) return null;\n  const hoje = hojeUTC();\n  if (fim > hoje) fim = hoje;\n  if (fim < inicio) return null;\n  return { inicio, fim, dias: Math.floor((fim - inicio) / DIA) + 1 };\n}\nfunction tempo(dias) {\n  dias = Math.max(0, Number(dias || 0));\n  const meses = Math.floor(dias / 30);\n  const resto = dias % 30;\n  const partes = [];\n  if (meses) partes.push(`${meses} ${meses === 1 ? 'mês' : 'meses'}`);\n  if (resto || !partes.length) partes.push(`${resto} ${resto === 1 ? 'dia' : 'dias'}`);\n  return partes.join(' e ');\n}\nfunction lista(v) {\n  return String(v ?? '').split(/[\\n,;|]+/).map(x => norm(x)).filter(Boolean);\n}\nfunction cboNormalizado(v) { return String(v ?? '').replace(/\\D/g, ''); }\nfunction cboCombina(cbo, regra) {\n  const atual = cboNormalizado(cbo);\n  const r = cboNormalizado(regra);\n  if (!atual || !r) return false;\n  return r.length <= 4 ? atual.startsWith(r) : atual === r;\n}\n\nconst IGNORADAS = new Set(['AUXILIAR','AJUDANTE','ASSISTENTE','OFICIAL','OPERADOR','OPERADORA','SERVICO','SERVICOS','GERAL','GERAIS','DE','DA','DO','DAS','DOS','EM','PARA','COM','I','II','III']);\nlet cargosCompativeis = lista(vagaAtual?.cargos_compativeis);\nconst cbosCompativeis = lista(vagaAtual?.cbos_compativeis);\nif (!cargosCompativeis.length && vagaAtual) {\n  const base = norm(`${vagaAtual.titulo ?? ''} ${vagaAtual.cargo ?? ''}`)\n    .split(/[^A-Z0-9]+/)\n    .filter(t => t.length >= 4 && !IGNORADAS.has(t));\n  cargosCompativeis = [...new Set(base)];\n}\n\nfunction cargoCombina(cargo) {\n  if (!exigirCompatibilidade) return true;\n  const c = norm(cargo);\n  if (!c) return false;\n\n  const tokensCargo = new Set(\n    c.split(' ').filter(token => token.length >= 3 && !IGNORADAS.has(token))\n  );\n\n  return cargosCompativeis.some((regraOriginal) => {\n    const regra = norm(regraOriginal);\n    if (!regra) return false;\n    if (c.includes(regra) || regra.includes(c)) return true;\n\n    const tokensRegra = regra\n      .split(' ')\n      .filter(token => token.length >= 3 && !IGNORADAS.has(token));\n    if (!tokensRegra.length) return false;\n\n    const emComum = tokensRegra.filter(token => tokensCargo.has(token));\n    // Exige todos os termos relevantes da regra, ou pelo menos dois termos.\n    return emComum.length === tokensRegra.length\n      || (tokensRegra.length >= 2 && emComum.length >= 2);\n  });\n}\nfunction experienciaCompativel(cargo, cbo) {\n  if (!exigirCompatibilidade) return true;\n  const porCbo = cbosCompativeis.some(regra => cboCombina(cbo, regra));\n  const porCargo = cargoCombina(cargo);\n  return porCbo || porCargo;\n}\nfunction formatarVagas(vagas) {\n  if (!vagas.length) return 'No momento não há vagas ativas cadastradas.';\n  return 'Escolha uma das vagas abaixo:\\n\\n' + vagas.map((v, i) => {\n    const local = [v.bairro, v.cidade, v.estado].filter(Boolean).join(' - ');\n    return `${i + 1}. ${v.titulo || v.cargo || 'Vaga'}${local ? ` — ${local}` : ''}`;\n  }).join('\\n') + '\\n\\nResponda com o número ou o nome da vaga.';\n}\n\nconst brutas = Array.isArray(extraido.experiencias) ? extraido.experiencias : [];\nconst unicas = new Map();\nfor (const e of brutas) {\n  const cargo = texto(e.cargo);\n  const empregador = texto(e.empregador);\n  const cbo = texto(e.cbo);\n  const periodoOriginal = texto(e.periodo);\n  const p = periodo(periodoOriginal);\n  if (!periodoOriginal || !p) continue;\n  const chave = norm(`${empregador}|${cargo}|${periodoOriginal}`);\n  if (!unicas.has(chave)) {\n    const compativel = experienciaCompativel(cargo, cbo);\n    unicas.set(chave, {\n      empregador, cargo, cbo, periodo: periodoOriginal,\n      inicio: p.inicio.toISOString().slice(0,10),\n      fim: p.fim.toISOString().slice(0,10),\n      dias: p.dias,\n      tempo: tempo(p.dias),\n      compativel,\n      atingiu_minimo: compativel && p.dias >= MINIMO_DIAS\n    });\n  }\n}\n\nconst experienciasValidas = [...unicas.values()].sort((a,b) => b.inicio.localeCompare(a.inicio));\nconst compativeis = experienciasValidas.filter(e => e.compativel).sort((a,b) => b.dias - a.dias);\nconst maiorCompativel = compativeis[0] ?? null;\nconst experienciaAprovadora = aceitaSemExperiencia ? null : (compativeis.find(e => e.dias >= MINIMO_DIAS) ?? null);\nconst mediaDias = experienciasValidas.length\n  ? Math.round(experienciasValidas.reduce((s,e) => s + e.dias, 0) / experienciasValidas.length)\n  : 0;\nconst ordenadosDias = experienciasValidas.map(e => e.dias).sort((a,b) => a-b);\nconst medianaDias = ordenadosDias.length\n  ? (ordenadosDias.length % 2 ? ordenadosDias[(ordenadosDias.length-1)/2] : Math.round((ordenadosDias[ordenadosDias.length/2-1] + ordenadosDias[ordenadosDias.length/2])/2))\n  : 0;\n\nlet aprovado = null;\nif (vagaEstaAtiva) {\n  if (aceitaSemExperiencia) aprovado = true;\n  else if (experienciasValidas.length) aprovado = experienciaAprovadora !== null;\n}\n\nconst maiorDias = maiorCompativel?.dias ?? 0;\nconst faltamDias = aprovado === false ? Math.max(0, MINIMO_DIAS - maiorDias) : 0;\nconst faltamMeses = faltamDias ? Math.round((faltamDias / 30) * 10) / 10 : 0;\nlet motivoReprovacao = null;\nif (aprovado === false) {\n  motivoReprovacao = compativeis.length === 0\n    ? `Nenhuma experiência compatível com a vaga foi identificada entre ${experienciasValidas.length} vínculo(s) válido(s).`\n    : `A maior experiência compatível foi de ${tempo(maiorDias)}. O requisito é ${tempo(MINIMO_DIAS)}; faltaram ${tempo(faltamDias)}.`;\n}\n\nconst criterio = !vagaEstaAtiva\n  ? 'Vaga não selecionada ou inativa.'\n  : aceitaSemExperiencia\n    ? 'A vaga aceita candidatos sem experiência mínima.'\n    : `Uma única experiência compatível por cargo ou CBO com pelo menos ${tempo(MINIMO_DIAS)}.`;\n\nconst observacaoTriagem = aprovado === true\n  ? (aceitaSemExperiencia\n      ? 'Aprovado: a vaga aceita candidato sem experiência mínima.'\n      : `Aprovado pela experiência ${experienciaAprovadora.cargo || 'compatível'} (${experienciaAprovadora.cbo || 'CBO não informado'}), com ${experienciaAprovadora.tempo}.`)\n  : aprovado === false\n    ? motivoReprovacao\n    : 'Análise inconclusiva: não foi possível validar períodos suficientes na CTPS.';\n\nconst cep = String(candidato.cep ?? '').replace(/\\D/g, '');\nconst possuiCep = cep.length === 8;\nconst nome = texto(extraido.nome);\nconst primeiroNome = nome ? nome.split(/\\s+/)[0] : '';\nconst saudacao = primeiroNome ? `Olá, ${primeiroNome}!` : 'Olá!';\n\nlet resultado, status, etapa, evento, proximaAcao, aguardando, mensagem, descricaoEvento;\nif (!vagaAtual) {\n  resultado='VAGA_NAO_SELECIONADA'; status='EM_PROCESSO'; etapa='ESCOLHENDO_VAGA'; evento='CTPS_RECEBIDA_SEM_VAGA'; proximaAcao='ESCOLHER_VAGA'; aguardando='VAGA';\n  mensagem=`${saudacao} Recebi sua CTPS. Antes de concluir a análise, preciso saber para qual vaga você deseja se candidatar.\\n\\n${formatarVagas(vagasAtivas)}`;\n  descricaoEvento='CTPS recebida antes da seleção de uma vaga.';\n} else if (!vagaEstaAtiva) {\n  resultado='VAGA_INDISPONIVEL'; status='EM_PROCESSO'; etapa='ESCOLHENDO_VAGA'; evento='VAGA_INDISPONIVEL'; proximaAcao='ESCOLHER_VAGA'; aguardando='VAGA';\n  mensagem=`${saudacao} Recebi sua CTPS, mas a vaga selecionada não está ativa.\\n\\n${formatarVagas(vagasAtivas)}`;\n  descricaoEvento='Vaga vinculada inativa durante a análise da CTPS.';\n} else if (aprovado === true && possuiCep) {\n  resultado='APROVADO'; status='APROVADO'; etapa='AGUARDANDO_APRESENTACAO'; evento='APROVADO_SOLICITAR_APRESENTACAO'; proximaAcao='SOLICITAR_APRESENTACAO'; aguardando='APRESENTACAO_PROFISSIONAL';\n  mensagem=`${saudacao} Seu perfil foi aprovado na triagem para a vaga ${vagaAtual.titulo}! 😊\\n\\nAntes de marcarmos a entrevista on-line, conte brevemente sobre suas experiências, atividades principais e pontos fortes.`;\n  descricaoEvento=observacaoTriagem;\n} else if (aprovado === true && !possuiCep) {\n  resultado='APROVADO'; status='APROVADO'; etapa='AGUARDANDO_CEP'; evento='APROVADO_AGUARDANDO_CEP'; proximaAcao='SOLICITAR_CEP'; aguardando='CEP';\n  mensagem=`${saudacao} Sua CTPS foi analisada e seu perfil foi aprovado para a vaga ${vagaAtual.titulo}. Agora preciso apenas do seu CEP com 8 números.`;\n  descricaoEvento=observacaoTriagem;\n} else if (aprovado === false) {\n  resultado='REPROVADO'; status='REPROVADO'; etapa='REPROVADO_TRIAGEM'; evento='REPROVADO_TRIAGEM'; proximaAcao='ENCERRAR_PROCESSO'; aguardando='NENHUMA_ACAO';\n  mensagem=`${saudacao} Agradecemos pelo envio da CTPS e pelo interesse na vaga ${vagaAtual.titulo}. Neste momento não será possível continuar nesta oportunidade, mas seus dados poderão ser considerados em futuras vagas.`;\n  descricaoEvento=motivoReprovacao;\n} else {\n  resultado='ANALISE_INCONCLUSIVA'; status='EM_PROCESSO'; etapa='ANALISANDO_DOCUMENTOS'; evento='ANALISE_INCONCLUSIVA'; proximaAcao='ANALISE_MANUAL'; aguardando='ANALISE_MANUAL';\n  mensagem=`${saudacao} Recebemos sua CTPS para a vaga ${vagaAtual.titulo}. Algumas informações precisam ser verificadas pela equipe.`;\n  descricaoEvento=observacaoTriagem;\n}\n\nconst analiseCtps = {\n  vaga_id: vagaAtual?.id ?? null,\n  vaga: vagaAtual?.titulo ?? null,\n  criterio,\n  exigir_experiencia_compativel: exigirCompatibilidade,\n  cargos_compativeis: cargosCompativeis,\n  cbos_compativeis: cbosCompativeis,\n  experiencia_minima_meses: minimoMeses,\n  experiencia_minima_dias: MINIMO_DIAS,\n  experiencias_validas: experienciasValidas,\n  maior_experiencia_compativel: maiorCompativel,\n  experiencia_aprovadora: experienciaAprovadora,\n  tempo_medio_empresas_dias: mediaDias,\n  tempo_medio_empresas: tempo(mediaDias),\n  mediana_permanencia_dias: medianaDias,\n  mediana_permanencia: tempo(medianaDias),\n  motivo_reprovacao: motivoReprovacao,\n  dias_faltantes: faltamDias,\n  meses_faltantes: faltamMeses,\n  aprovado\n};\n\nreturn [{ json: {\n  candidato_id: Number(candidato.id), telefone: candidato.telefone,\n  vaga_id: vagaAtual?.id ?? null, codigo_vaga: vagaAtual?.codigo ?? null, titulo_vaga: vagaAtual?.titulo ?? null,\n  nome, cpf: numeros(extraido.cpf), sexo: texto(extraido.sexo),\n  nome_mae: texto(extraido.nome_mae ?? extraido.nomeMae),\n  data_nascimento: normalizarData(extraido.data_nascimento ?? extraido.dataNascimento),\n  cargo: experienciaAprovadora?.cargo ?? maiorCompativel?.cargo ?? null,\n  tempo_experiencia: maiorCompativel?.tempo ?? '0 dias',\n  tempo_experiencia_meses: Math.floor(maiorDias / 30),\n  tempo_experiencia_dias: maiorDias,\n  experiencias_lidas: brutas.length,\n  periodos_validos: experienciasValidas.length,\n  experiencias_relevantes: compativeis,\n  experiencias_ctps: experienciasValidas,\n  experiencia_aprovadora: experienciaAprovadora,\n  experiencia_minima_meses: vagaEstaAtiva ? minimoMeses : null,\n  minimo_dias_aprovacao: vagaEstaAtiva ? MINIMO_DIAS : null,\n  aceita_sem_experiencia: aceitaSemExperiencia,\n  criterio_aprovacao: criterio,\n  observacao_triagem: observacaoTriagem,\n  motivo_reprovacao: motivoReprovacao,\n  dias_faltantes_experiencia: faltamDias || null,\n  meses_faltantes_experiencia: faltamMeses || null,\n  tempo_faltante_experiencia: faltamDias ? tempo(faltamDias) : null,\n  maior_experiencia_compativel_dias: maiorDias,\n  maior_experiencia_compativel_texto: tempo(maiorDias),\n  experiencia_minima_dias: MINIMO_DIAS,\n  tempo_medio_empresas_dias: mediaDias,\n  tempo_medio_empresas_texto: tempo(mediaDias),\n  mediana_permanencia_dias: medianaDias,\n  mediana_permanencia_texto: tempo(medianaDias),\n  quantidade_vinculos_validos: experienciasValidas.length,\n  analise_ctps: analiseCtps,\n  aprovado, resultado, status, etapa, evento, proxima_acao: proximaAcao, aguardando,\n  arquivo: dadosDocumento.nome_arquivo_documento || dadosArquivo.nome_arquivo || 'CTPS Digital.pdf',\n  nome_arquivo_documento: dadosDocumento.nome_arquivo_documento || dadosArquivo.nome_arquivo || 'CTPS Digital.pdf',\n  mime_type_documento: dadosDocumento.mime_type_documento || 'application/pdf',\n  tamanho_bytes_documento: Number(dadosDocumento.tamanho_bytes_documento || 0),\n  arquivo_base64: dadosDocumento.arquivo_base64 || '',\n  descricao_evento: descricaoEvento,\n  mensagem\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3936,
+        336
+      ],
+      "id": "3d53ed6d-89b0-4a60-9e61-1a47d49aa55f",
+      "name": "Preparar resultado CTPS"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO mensagens_buffer\n(\n    candidato_id,\n    texto,\n    versao,\n    ultima_mensagem_em,\n    processando,\n    created_at,\n    updated_at\n)\nVALUES\n(\n    $1,\n    $2,\n    1,\n    NOW(),\n    FALSE,\n    NOW(),\n    NOW()\n)\n\nON CONFLICT (candidato_id)\n\nDO UPDATE SET\n\n    texto = CASE\n\n        -- Se a mensagem anterior já estava sendo processada,\n        -- inicia um novo grupo somente com a nova mensagem.\n        WHEN mensagens_buffer.processando IS TRUE\n        THEN EXCLUDED.texto\n\n        -- Evita adicionar uma quebra de linha antes da primeira mensagem.\n        WHEN BTRIM(mensagens_buffer.texto) = ''\n        THEN EXCLUDED.texto\n\n        -- Junta a mensagem nova com as anteriores.\n        ELSE mensagens_buffer.texto\n             || E'\\n'\n             || EXCLUDED.texto\n\n    END,\n\n    versao = mensagens_buffer.versao + 1,\n\n    ultima_mensagem_em = NOW(),\n\n    processando = FALSE,\n\n    updated_at = NOW()\n\nRETURNING\n    candidato_id,\n    texto,\n    versao,\n    ultima_mensagem_em,\n    processando;",
+        "options": {
+          "queryReplacement": "={{ [   Number($('Buscar candidato').first().json.id),   String($('Extrair telefone').first().json.mensagem ?? '').trim() ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1536,
+        912
+      ],
+      "id": "4af22a5e-0a60-43ad-b4f2-668557eccf08",
+      "name": "Adicionar mensagem ao buffer",
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE mensagens_buffer\n\nSET\n    processando = TRUE,\n    updated_at = NOW()\n\nWHERE candidato_id = $1\n\n  -- Somente a execução correspondente à versão mais recente continua.\n  AND versao = $2\n\n  -- Evita duas execuções processarem o mesmo grupo.\n  AND processando = FALSE\n\n  -- Confirma que não houve nova mensagem nos últimos segundos.\n  AND ultima_mensagem_em <= NOW() - INTERVAL '7 seconds'\n\nRETURNING\n    candidato_id,\n    texto AS mensagem_agrupada,\n    versao,\n    ultima_mensagem_em;",
+        "options": {
+          "queryReplacement": "={{ [   Number($('Adicionar mensagem ao buffer').first().json.candidato_id),   Number($('Adicionar mensagem ao buffer').first().json.versao) ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1824,
+        896
+      ],
+      "id": "f85df2d2-684b-434d-b33e-e0726ab5686c",
+      "name": "Assumir lote mais recente",
+      "alwaysOutputData": false,
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 8
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1696,
+        768
+      ],
+      "id": "a730d9ea-84ef-4144-a9b3-3a138f6b42b6",
+      "name": "Aguardar novas mensagens",
+      "webhookId": "8659b738-d277-472a-ada2-74c74949d887"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM mensagens_buffer\n\nWHERE candidato_id = $1\n  AND versao = $2\n\nRETURNING candidato_id;",
+        "options": {
+          "queryReplacement": "={{ [   Number($('Assumir lote mais recente').first().json.candidato_id),   Number($('Assumir lote mais recente').first().json.versao) ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        6464,
+        896
+      ],
+      "id": "a4b077d0-a862-4163-a22b-1bb6600c72fe",
+      "name": "Limpar buffer processado",
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM mensagens_buffer\nWHERE candidato_id = $1\nRETURNING candidato_id;",
+        "options": {
+          "queryReplacement": "={{ [   Number($('Buscar candidato PDF').first().json.id) ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1232,
+        640
+      ],
+      "id": "b462fb6f-5d97-41d5-8497-f8381c6a08b0",
+      "name": "Cancelar buffer ao receber PDF",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c3d72867-fbb9-4684-a938-ef7e8135c886",
+              "leftValue": "={{ String($json.mensagem_atual ?? '').trim().length > 0 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3888,
+        896
+      ],
+      "id": "12bdbb47-47c9-46fe-aacd-1808846fdf92",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const entrada = $input.first().json;\n\nconst mensagem = String(\n  entrada.mensagem_agrupada\n  ?? entrada.mensagem\n  ?? ''\n).trim();\n\n// Reconhece exemplos como:\n// VAGA-001, VAGA 001, VAGA001 e vaga-001.\nconst correspondencia = mensagem\n  .toUpperCase()\n  .match(/\\bVAGA[\\s-]?([A-Z0-9]+(?:-[A-Z0-9]+)*)\\b/);\n\nreturn [\n  {\n    json: {\n      ...entrada,\n      mensagem_recebida: mensagem,\n      codigo_vaga_informado: correspondencia\n        ? `VAGA-${correspondencia[1]}`\n        : '',\n      informou_codigo_vaga: Boolean(correspondencia)\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        736
+      ],
+      "id": "b023281c-0d9c-4ef6-8f4f-3bd971861f2d",
+      "name": "Extrair código da vaga"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH vaga_encontrada AS\n(\n    SELECT\n        id,\n        codigo,\n        titulo\n    FROM vagas\n    WHERE UPPER(codigo) = UPPER(NULLIF(BTRIM($1::TEXT), ''))\n      AND status = 'ATIVA'\n      AND COALESCE(atendimento_chatbot, TRUE) IS TRUE\n    ORDER BY updated_at DESC\n    LIMIT 1\n),\ncandidato_antes AS\n(\n    SELECT\n        id,\n        vaga_id\n    FROM candidatos\n    WHERE id = $2\n),\natualizado AS\n(\n    UPDATE candidatos AS c\n    SET\n        vaga_id = v.id,\n        vaga = v.titulo,\n\n        -- Uma vaga diferente possui critérios próprios.\n        -- Por isso, a aprovação e a declaração de experiência\n        -- anteriores não devem ser reaproveitadas automaticamente.\n        aprovado = CASE\n            WHEN c.vaga_id IS DISTINCT FROM v.id\n            THEN NULL\n            ELSE c.aprovado\n        END,\n\n        experiencia_6_meses = CASE\n            WHEN c.vaga_id IS DISTINCT FROM v.id\n            THEN NULL\n            ELSE c.experiencia_6_meses\n        END,\n\n        updated_at = NOW()\n    FROM vaga_encontrada AS v\n    WHERE c.id = $2\n    RETURNING\n        c.id,\n        c.vaga_id,\n        c.vaga\n)\nSELECT\n    NULLIF(BTRIM($1::TEXT), '') AS codigo_informado,\n    (SELECT id FROM vaga_encontrada) AS vaga_id_encontrada,\n    (SELECT codigo FROM vaga_encontrada) AS codigo_vaga_encontrada,\n    (SELECT titulo FROM vaga_encontrada) AS titulo_vaga_encontrada,\n    EXISTS (SELECT 1 FROM vaga_encontrada) AS codigo_valido,\n    EXISTS (SELECT 1 FROM atualizado) AS candidato_atualizado,\n    COALESCE(\n        (\n            SELECT vaga_id IS DISTINCT FROM\n                   (SELECT id FROM vaga_encontrada)\n            FROM candidato_antes\n            WHERE EXISTS (SELECT 1 FROM vaga_encontrada)\n        ),\n        FALSE\n    ) AS vaga_alterada;",
+        "options": {
+          "queryReplacement": "={{ [\n  String($('Extrair código da vaga').first().json.codigo_vaga_informado ?? ''),\n  Number($('Buscar candidato').first().json.id)\n] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2256,
+        736
+      ],
+      "id": "0e928054-bc40-4e80-a11a-5d4d46d740a0",
+      "name": "Vincular vaga informada",
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n    COALESCE(\n        (\n            SELECT jsonb_build_object(\n                'id', v.id,\n                'empresa_id', v.empresa_id,\n                'empresa', e.nome,\n                'codigo', v.codigo,\n                'titulo', v.titulo,\n                'cargo', v.cargo,\n                'descricao', v.descricao,\n                'cidade', v.cidade,\n                'estado', v.estado,\n                'bairro', v.bairro,\n                'endereco_referencia', v.endereco_referencia,\n                'tipo_contrato', v.tipo_contrato,\n                'modalidade', v.modalidade,\n                'escala', v.escala,\n                'horario', v.horario,\n                'salario', v.salario,\n                'possui_insalubridade', v.possui_insalubridade,\n                'percentual_insalubridade', v.percentual_insalubridade,\n                'observacao_insalubridade', v.observacao_insalubridade,\n                'beneficios', v.beneficios,\n                'escolaridade_minima', v.escolaridade_minima,\n                'experiencia_minima_meses', v.experiencia_minima_meses,\n                'aceita_sem_experiencia', v.aceita_sem_experiencia,\n                'exigir_experiencia_compativel', v.exigir_experiencia_compativel,\n                'cargos_compativeis', v.cargos_compativeis,\n                'cbos_compativeis', v.cbos_compativeis,\n                'requisitos_obrigatorios', v.requisitos_obrigatorios,\n                'requisitos_desejaveis', v.requisitos_desejaveis,\n                'quantidade_vagas', v.quantidade_vagas,\n                'formulario_url', v.formulario_url,\n                'status', v.status,\n                'data_inicio', v.data_inicio,\n                'data_encerramento', v.data_encerramento,\n                'updated_at', v.updated_at\n            )\n            FROM candidatos c\n            JOIN vagas v\n              ON v.id = c.vaga_id\n            JOIN empresas e\n              ON e.id = v.empresa_id\n            WHERE c.id = $1\n              AND COALESCE(v.atendimento_chatbot, TRUE) IS TRUE\n            LIMIT 1\n        ),\n        'null'::jsonb\n    ) AS vaga_atual,\n\n    COALESCE(\n        (\n            SELECT jsonb_agg(\n                jsonb_build_object(\n                    'id', lista.id,\n                    'numero_opcao', lista.numero_opcao,\n                    'empresa_id', lista.empresa_id,\n                    'empresa', lista.empresa,\n                    'codigo', lista.codigo,\n                    'titulo', lista.titulo,\n                    'cargo', lista.cargo,\n                    'descricao', lista.descricao,\n                    'cidade', lista.cidade,\n                    'estado', lista.estado,\n                    'bairro', lista.bairro,\n                    'endereco_referencia', lista.endereco_referencia,\n                    'tipo_contrato', lista.tipo_contrato,\n                    'modalidade', lista.modalidade,\n                    'escala', lista.escala,\n                    'horario', lista.horario,\n                    'salario', lista.salario,\n                    'possui_insalubridade', lista.possui_insalubridade,\n                    'percentual_insalubridade', lista.percentual_insalubridade,\n                    'observacao_insalubridade', lista.observacao_insalubridade,\n                    'beneficios', lista.beneficios,\n                    'escolaridade_minima', lista.escolaridade_minima,\n                    'experiencia_minima_meses', lista.experiencia_minima_meses,\n                    'aceita_sem_experiencia', lista.aceita_sem_experiencia,\n                    'exigir_experiencia_compativel', lista.exigir_experiencia_compativel,\n                    'cargos_compativeis', lista.cargos_compativeis,\n                    'cbos_compativeis', lista.cbos_compativeis,\n                    'requisitos_obrigatorios', lista.requisitos_obrigatorios,\n                    'requisitos_desejaveis', lista.requisitos_desejaveis,\n                    'quantidade_vagas', lista.quantidade_vagas,\n                    'formulario_url', lista.formulario_url,\n                    'data_inicio', lista.data_inicio\n                )\n                ORDER BY lista.numero_opcao ASC\n            )\n            FROM\n            (\n                SELECT\n                    v.*,\n                    e.nome AS empresa,\n                    ROW_NUMBER() OVER (\n                        ORDER BY v.id ASC\n                    )::INTEGER AS numero_opcao\n                FROM vagas v\n                JOIN empresas e\n                  ON e.id = v.empresa_id\n                WHERE v.status = 'ATIVA'\n                  AND COALESCE(v.atendimento_chatbot, TRUE) IS TRUE\n                  AND e.ativo IS TRUE\n                ORDER BY v.id ASC\n                LIMIT 20\n            ) AS lista\n        ),\n        '[]'::jsonb\n    ) AS vagas_ativas;",
+        "options": {
+          "queryReplacement": "={{ [\n  Number($('Atualizar CEP se informado').first().json.id)\n] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2672,
+        736
+      ],
+      "id": "ae188075-dcc1-4d7e-a8b6-5c53b74abb35",
+      "name": "Buscar contexto de vagas",
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst arquivo = item.binary?.ctps;\n\nif (!arquivo) {\n  throw new Error('O binário ctps não foi encontrado.');\n}\n\nconst buffer = await this.helpers.getBinaryDataBuffer(0, 'ctps');\n\nreturn [{\n  json: {\n    ...item.json,\n    arquivo_base64: buffer.toString('base64'),\n    nome_arquivo_documento:\n      arquivo.fileName\n      ?? $('Extrair telefone').first().json.nome_arquivo\n      ?? 'CTPS Digital.pdf',\n    mime_type_documento: arquivo.mimeType ?? 'application/pdf',\n    tamanho_bytes_documento: buffer.length\n  },\n  binary: item.binary\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2064,
+        432
+      ],
+      "id": "09ada111-4753-4ea6-90e4-54193a850cec",
+      "name": "Preparar PDF para armazenamento"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n    COALESCE(\n        (\n            SELECT jsonb_agg(\n                jsonb_build_object(\n                    'id', o.id,\n                    'opcao', o.opcao,\n                    'inicio', o.inicio,\n                    'fim', o.fim,\n                    'expira_em', o.expira_em\n                )\n                ORDER BY o.opcao\n            )\n            FROM entrevista_opcoes o\n            WHERE o.candidato_id = $1\n              AND o.status = 'OFERECIDA'\n              AND o.expira_em > NOW()\n        ),\n        '[]'::jsonb\n    ) AS opcoes_entrevista,\n\n    COALESCE(\n        (\n            SELECT jsonb_build_object(\n                'id', e.id,\n                'inicio', e.inicio,\n                'fim', e.fim,\n                'status', e.status,\n                'meet_link', e.meet_link,\n                'google_event_url', e.google_event_url\n            )\n            FROM entrevistas e\n            WHERE e.candidato_id = $1\n              AND e.status = 'AGENDADA'\n            ORDER BY e.created_at DESC\n            LIMIT 1\n        ),\n        'null'::jsonb\n    ) AS entrevista_atual;",
+        "options": {
+          "queryReplacement": "={{ [ Number($('Atualizar CEP se informado').first().json.id) ] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3456,
+        896
+      ],
+      "id": "37069771-ab24-4607-8d5e-f04681c1352c",
+      "name": "Buscar opções de entrevista",
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const persistido = $input.first().json;\nconst contexto = $('Contexto IA').first().json ?? {};\nconst mensagemAtual = String(contexto.mensagem_atual ?? '').trim();\n\nconst candidatoId = Number(persistido.candidato_id ?? persistido.id);\nif (!Number.isInteger(candidatoId) || candidatoId <= 0) {\n  throw new Error(`Não foi possível identificar o candidato: ${persistido.candidato_id ?? persistido.id}`);\n}\n\nfunction normalizar(valor) {\n  return String(valor ?? '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase()\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\nfunction bool(valor) {\n  if (valor === true || valor === 1) return true;\n  return ['true', 'sim', '1'].includes(normalizar(String(valor ?? '').replace(/^=+/, '')));\n}\nfunction opcao(valor) {\n  const n = Number(String(valor ?? '').replace(/^=+/, '').trim());\n  return [1, 2, 3].includes(n) ? n : null;\n}\nfunction pedeOutros(mensagem) {\n  return /(outro horario|outros horarios|outra opcao|outras opcoes|outro dia|tem outro|tem mais|nenhum desses|nenhuma dessas|nao consigo|nao posso|horarios diferentes|novas opcoes)/.test(normalizar(mensagem));\n}\nfunction pedeReagendamento(mensagem) {\n  return /(reagendar|remarcar|trocar.*horario|mudar.*horario|mudar.*entrevista|outro dia|nao vou conseguir|nao consigo comparecer|alterar.*agendamento)/.test(normalizar(mensagem));\n}\n\nlet solicitar = bool(persistido.solicitar_opcoes_entrevista);\nlet escolhida = opcao(persistido.opcao_horario_escolhida);\nlet motivoRegeneracao = '';\n\nif (pedeOutros(mensagemAtual)) {\n  solicitar = true;\n  escolhida = null;\n  motivoRegeneracao = 'SOLICITADO_PELO_CANDIDATO';\n}\n\nconst possuiEntrevista = Boolean(contexto.entrevista_atual && typeof contexto.entrevista_atual === 'object');\nlet acaoAgendamento = 'NORMAL';\nif (possuiEntrevista && pedeReagendamento(mensagemAtual)) {\n  acaoAgendamento = 'REAGENDAR';\n  solicitar = true;\n  escolhida = null;\n  motivoRegeneracao = 'REAGENDAMENTO';\n} else if (escolhida !== null) {\n  acaoAgendamento = 'AGENDAR';\n} else if (solicitar) {\n  acaoAgendamento = 'GERAR_OPCOES';\n}\n\nlet sessaoWaha = 'whats_junior';\ntry {\n  sessaoWaha = $('Webhook').first().json.body?.session ?? sessaoWaha;\n} catch {}\n\nreturn [{\n  json: {\n    ...persistido,\n    candidato_id: candidatoId,\n    solicitar_opcoes_entrevista: solicitar,\n    opcao_horario_escolhida: escolhida,\n    acao_agendamento: acaoAgendamento,\n    action: acaoAgendamento,\n    opcao_numero: escolhida,\n    motivo_regeneracao: motivoRegeneracao,\n    calendar_id: 'ec7f0c6eb99778cac22b9a9aefec9e648e8ba5519172b6fc45ab03f938948c7f@group.calendar.google.com',\n    timezone: 'America/Sao_Paulo',\n    session: sessaoWaha,\n    recrutadora_telefone: '5511951558547'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5168,
+        896
+      ],
+      "id": "17a2a9c9-c8ff-4eed-963d-117213cb2d28",
+      "name": "Definir ação de entrevista"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f25b03b8-d42b-45c6-817d-40a7666ec71e",
+              "leftValue": "={{ $json.acao_agendamento !== 'NORMAL' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        5392,
+        896
+      ],
+      "id": "582f6203-2eb7-437b-9cf3-c862506f6944",
+      "name": "Precisa acionar agenda?"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "BMbVglkg4WjpuqSc",
+          "mode": "id",
+          "cachedResultUrl": "/workflow/BMbVglkg4WjpuqSc",
+          "cachedResultName": "[GENESIS IA] Entrevistas Google Meet - Reagendamento V4"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        5616,
+        768
+      ],
+      "id": "697ad0b6-0535-4b35-b745-07af8650ece4",
+      "name": "Executar agenda de entrevistas"
+    },
+    {
+      "parameters": {
+        "jsCode": "const retorno = $input.first().json ?? {};\nconst persistido = $('Persistir resposta IA').first().json ?? {};\nlet mensagem = String(retorno.mensagem_whatsapp ?? retorno.mensagem ?? '').trim();\n\nif (/^(AGENDAR_ENTREVISTA|GERAR_OPCOES_ENTREVISTA|REAGENDAR_ENTREVISTA)$/i.test(mensagem)) {\n  mensagem = '';\n}\n\nif (!mensagem) {\n  mensagem = retorno.status === 'SEM_HORARIOS'\n    ? 'Não encontrei três horários livres no momento. A equipe de recrutamento entrará em contato para combinar a entrevista.'\n    : 'Não foi possível concluir o agendamento agora. Tente novamente em alguns instantes.';\n}\n\nreturn [{\n  json: {\n    ...persistido,\n    ...retorno,\n    candidato_id: Number(retorno.candidato_id ?? persistido.candidato_id ?? persistido.id),\n    telefone: String(retorno.telefone ?? persistido.telefone ?? $('Extrair telefone').first().json.telefone ?? '').replace(/\\D/g, ''),\n    session: String(retorno.session ?? $('Webhook').first().json.body?.session ?? 'whats_junior'),\n    mensagem,\n    mensagem_whatsapp: mensagem\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6048,
+        768
+      ],
+      "id": "3b459cb4-53f6-4717-a6b7-6a96e7f4e73a",
+      "name": "Normalizar retorno da agenda"
+    },
+    {
+      "parameters": {
+        "jsCode": "const entrada = $input.first().json;\nconst contexto = $('Contexto IA').first().json ?? {};\nconst candidato = contexto.candidato ?? {};\nconst documentos = Array.isArray(contexto.documentos) ? contexto.documentos : [];\nconst opcoesEntrevista = Array.isArray(contexto.opcoes_entrevista) ? contexto.opcoes_entrevista : [];\nconst entrevistaAtual = contexto.entrevista_atual && typeof contexto.entrevista_atual === 'object'\n  ? contexto.entrevista_atual\n  : null;\nconst mensagemAtual = String(contexto.mensagem_atual ?? '').trim();\n\nfunction converterResposta(valor) {\n  let atual = valor;\n  for (let tentativa = 0; tentativa < 4; tentativa++) {\n    if (atual && typeof atual === 'object' && !Array.isArray(atual)) {\n      if (atual.mensagem !== undefined || atual.nova_etapa !== undefined || atual.novo_status !== undefined) {\n        return atual;\n      }\n      if (atual.output !== undefined) { atual = atual.output; continue; }\n      if (atual.response !== undefined) { atual = atual.response; continue; }\n      if (atual.text !== undefined) { atual = atual.text; continue; }\n      return atual;\n    }\n    break;\n  }\n\n  if (typeof atual !== 'string') {\n    throw new Error(`A IA retornou um tipo inesperado: ${typeof atual}`);\n  }\n\n  let bruto = atual.trim()\n    .replace(/^```json\\s*/i, '')\n    .replace(/^```\\s*/i, '')\n    .replace(/\\s*```$/i, '')\n    .trim();\n\n  const inicio = bruto.indexOf('{');\n  const fim = bruto.lastIndexOf('}');\n  if (inicio < 0 || fim <= inicio) {\n    throw new Error(`Não foi possível localizar JSON na resposta: ${bruto.slice(0, 400)}`);\n  }\n\n  const convertido = JSON.parse(bruto.slice(inicio, fim + 1));\n  return convertido.output && typeof convertido.output === 'object'\n    ? convertido.output\n    : convertido;\n}\n\nfunction texto(valor, padrao = '') {\n  if (valor === null || valor === undefined) return padrao;\n  return String(valor).trim().replace(/^=+(?=(true|false|null|\\d))/i, '');\n}\n\nfunction normalizar(valor) {\n  return String(valor ?? '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase()\n    .replace(/\\s+/g, ' ')\n    .trim();\n}\n\nfunction booleanoOuNull(valor) {\n  if (valor === true || valor === false) return valor;\n  if (valor === 1) return true;\n  if (valor === 0) return false;\n  const v = normalizar(texto(valor));\n  if (['true', 'sim', '1'].includes(v)) return true;\n  if (['false', 'nao', '0'].includes(v)) return false;\n  return null;\n}\n\nfunction booleano(valor) {\n  const v = booleanoOuNull(valor);\n  return v === true;\n}\n\nfunction numeroOpcao(valor) {\n  const numero = Number(texto(valor));\n  return [1, 2, 3].includes(numero) ? numero : null;\n}\n\nfunction normalizarTags(valor) {\n  if (Array.isArray(valor)) {\n    return valor.map(tag => texto(tag)).filter(Boolean).slice(0, 5);\n  }\n  if (typeof valor === 'string' && valor.trim()) {\n    try {\n      const lista = JSON.parse(valor);\n      if (Array.isArray(lista)) return lista.map(tag => texto(tag)).filter(Boolean).slice(0, 5);\n    } catch {}\n    return valor.split(/[,;|]/).map(tag => texto(tag)).filter(Boolean).slice(0, 5);\n  }\n  return [];\n}\n\nfunction horarioLocal(iso) {\n  if (!iso) return null;\n  const data = new Date(iso);\n  if (Number.isNaN(data.getTime())) return null;\n  return new Intl.DateTimeFormat('pt-BR', {\n    timeZone: 'America/Sao_Paulo',\n    hour: '2-digit',\n    minute: '2-digit',\n    hourCycle: 'h23'\n  }).format(data);\n}\n\nfunction textoOpcao(opcao) {\n  const data = new Date(opcao.inicio);\n  if (Number.isNaN(data.getTime())) return `Opção ${opcao.opcao}`;\n  return new Intl.DateTimeFormat('pt-BR', {\n    timeZone: 'America/Sao_Paulo',\n    weekday: 'long',\n    day: '2-digit',\n    month: '2-digit',\n    hour: '2-digit',\n    minute: '2-digit',\n    hourCycle: 'h23'\n  }).format(data);\n}\n\nfunction mensagemComOpcoes() {\n  if (!opcoesEntrevista.length) {\n    return 'As opções anteriores não estão mais disponíveis. Vou consultar novos horários para você.';\n  }\n  return 'Estas são as opções disponíveis:\\n\\n' +\n    opcoesEntrevista.map(o => `${o.opcao}. ${textoOpcao(o)}`).join('\\n') +\n    '\\n\\nResponda com 1, 2 ou 3, ou informe o horário desejado.';\n}\n\nfunction opcaoPelaMensagem(mensagem) {\n  const n = normalizar(mensagem);\n  let match = n.match(/\\b(?:opcao|numero|quero|escolho)?\\s*([123])\\b/);\n  if (match) return Number(match[1]);\n  if (/\\bprimeir[ao]\\b/.test(n)) return 1;\n  if (/\\bsegund[ao]\\b/.test(n)) return 2;\n  if (/\\bterceir[ao]\\b/.test(n)) return 3;\n\n  const horaMatch = n.match(/\\b([01]?\\d|2[0-3])\\s*(?:h|:)\\s*([0-5]\\d)\\b/);\n  if (!horaMatch) return null;\n  const alvo = `${String(Number(horaMatch[1])).padStart(2, '0')}:${horaMatch[2]}`;\n  const correspondentes = opcoesEntrevista.filter(o => horarioLocal(o.inicio) === alvo);\n  return correspondentes.length === 1 ? Number(correspondentes[0].opcao) : null;\n}\n\nfunction pedeOutrosHorarios(mensagem) {\n  const n = normalizar(mensagem);\n  return /(outro horario|outros horarios|outra opcao|outras opcoes|outro dia|tem outro|tem mais|nenhum desses|nenhuma dessas|nao consigo|nao posso|horarios diferentes|novas opcoes)/.test(n);\n}\n\nfunction naoEntendeu(mensagem) {\n  const n = normalizar(mensagem);\n  return /^\\?+$/.test(n) || /(nao entendi|como assim|pode explicar|qual eu escolho|quais eram os horarios|repete os horarios)/.test(n);\n}\n\nfunction confirmacaoCurta(mensagem) {\n  const n = normalizar(mensagem).replace(/[.!?😊👍✅🙏]+/g, '').trim();\n  return /^(ok|okay|certo|combinado|beleza|entendi|perfeito|obrigado|obrigada|valeu|ta bom|esta bem|show)$/.test(n);\n}\n\nfunction pedeDetalhesEntrevista(mensagem) {\n  const n = normalizar(mensagem);\n  return /(qual.*horario|que horas|quando.*entrevista|manda.*link|envia.*link|pode repetir|dados.*entrevista|link.*meet)/.test(n);\n}\n\nfunction pedeReagendamento(mensagem) {\n  const n = normalizar(mensagem);\n  return /(reagendar|remarcar|trocar.*horario|mudar.*horario|mudar.*entrevista|outro dia|nao vou conseguir|nao consigo comparecer|preciso.*outro horario|alterar.*agendamento)/.test(n);\n}\n\nfunction detalhesEntrevista(entrevista) {\n  if (!entrevista?.inicio) return 'Sua entrevista está agendada, mas não consegui carregar os dados completos agora.';\n  const data = new Intl.DateTimeFormat('pt-BR', {\n    timeZone: 'America/Sao_Paulo',\n    weekday: 'long',\n    day: '2-digit',\n    month: '2-digit',\n    year: 'numeric',\n    hour: '2-digit',\n    minute: '2-digit',\n    hourCycle: 'h23'\n  }).format(new Date(entrevista.inicio));\n  const link = String(entrevista.meet_link || entrevista.google_event_url || '').trim();\n  return `Sua entrevista está marcada para ${data}.${link ? `\\n\\nLink do Google Meet:\\n${link}` : ''}`;\n}\n\nfunction parecePedidoDocumento(mensagem, termo) {\n  const n = normalizar(mensagem);\n  return n.includes(termo) && /(envie|manda|mande|preciso|necessario|faltando|aguardando)/.test(n);\n}\n\nconst resposta = converterResposta(entrada.output ?? entrada.response ?? entrada.text ?? entrada);\n\nconst etapasPermitidas = new Set([\n  'PRIMEIRO_CONTATO', 'PERGUNTANDO_EXPERIENCIA', 'ESCOLHENDO_VAGA',\n  'AGUARDANDO_CTPS_CEP', 'AGUARDANDO_CTPS', 'AGUARDANDO_CEP',\n  'ANALISANDO_DOCUMENTOS', 'APROVADO_TRIAGEM', 'REPROVADO_PRE_TRIAGEM',\n  'REPROVADO_TRIAGEM', 'AGUARDANDO_APRESENTACAO', 'GERANDO_OPCOES_ENTREVISTA',\n  'ESCOLHENDO_HORARIO', 'AGUARDANDO_ENTREVISTA', 'ENTREVISTA_AGENDADA',\n  'EM_ADMISSAO', 'REPROVADO_POS_ENTREVISTA', 'CONTRATADO', 'ENCERRADO'\n]);\nconst statusPermitidos = new Set(['NOVO', 'EM_PROCESSO', 'APROVADO', 'REPROVADO', 'EM_ADMISSAO', 'CONTRATADO', 'ENCERRADO']);\n\nlet novaEtapa = etapasPermitidas.has(texto(resposta.nova_etapa))\n  ? texto(resposta.nova_etapa)\n  : texto(candidato.etapa, 'PRIMEIRO_CONTATO');\nlet novoStatus = statusPermitidos.has(texto(resposta.novo_status))\n  ? texto(resposta.novo_status)\n  : texto(candidato.status, 'NOVO');\nlet mensagem = texto(resposta.mensagem);\nlet evento = texto(resposta.evento);\nlet solicitarOpcoes = booleano(resposta.solicitar_opcoes_entrevista);\nlet opcaoEscolhida = numeroOpcao(resposta.opcao_horario_escolhida);\n\nconst etapaAtual = texto(candidato.etapa);\nconst statusAtual = texto(candidato.status);\nconst emAgenda = ['GERANDO_OPCOES_ENTREVISTA', 'ESCOLHENDO_HORARIO', 'AGUARDANDO_ENTREVISTA'].includes(etapaAtual)\n  || opcoesEntrevista.length > 0;\n\nif (!entrevistaAtual && emAgenda) {\n  const opcaoDeterministica = opcaoPelaMensagem(mensagemAtual);\n\n  if (pedeOutrosHorarios(mensagemAtual)) {\n    solicitarOpcoes = true;\n    opcaoEscolhida = null;\n    novaEtapa = 'GERANDO_OPCOES_ENTREVISTA';\n    novoStatus = 'APROVADO';\n    evento = 'NOVAS_OPCOES_ENTREVISTA_SOLICITADAS';\n    mensagem = 'Claro! Vou consultar três novas opções disponíveis para você.';\n  } else if (opcaoDeterministica !== null) {\n    solicitarOpcoes = false;\n    opcaoEscolhida = opcaoDeterministica;\n    novaEtapa = 'ESCOLHENDO_HORARIO';\n    novoStatus = 'APROVADO';\n    evento = 'HORARIO_ENTREVISTA_ESCOLHIDO';\n    mensagem = 'Vou confirmar esse horário para você.';\n  } else if (naoEntendeu(mensagemAtual)) {\n    solicitarOpcoes = false;\n    opcaoEscolhida = null;\n    novaEtapa = 'ESCOLHENDO_HORARIO';\n    novoStatus = 'APROVADO';\n    evento = '';\n    mensagem = mensagemComOpcoes();\n  }\n}\n\nif (entrevistaAtual) {\n  opcaoEscolhida = null;\n  novoStatus = 'APROVADO';\n\n  if (pedeReagendamento(mensagemAtual)) {\n    solicitarOpcoes = true;\n    novaEtapa = 'GERANDO_OPCOES_ENTREVISTA';\n    evento = 'REAGENDAMENTO_SOLICITADO';\n    mensagem = 'Claro! Vou cancelar o horário atual e consultar três novas opções disponíveis para você.';\n  } else {\n    solicitarOpcoes = false;\n    novaEtapa = 'ENTREVISTA_AGENDADA';\n\n    if (confirmacaoCurta(mensagemAtual)) {\n      evento = '';\n      mensagem = 'Combinado! Até a entrevista. 😊';\n    } else if (pedeDetalhesEntrevista(mensagemAtual)) {\n      evento = '';\n      mensagem = detalhesEntrevista(entrevistaAtual);\n    }\n  }\n}\n\n// Nunca deixa marcadores internos chegarem ao WhatsApp.\nif (/^(AGENDAR_ENTREVISTA|GERAR_OPCOES_ENTREVISTA)$/i.test(mensagem)) {\n  mensagem = opcaoEscolhida !== null\n    ? 'Vou confirmar esse horário para você.'\n    : solicitarOpcoes\n      ? 'Vou consultar novas opções disponíveis para você.'\n      : mensagemComOpcoes();\n}\n\nconst temCtps = contexto.tem_ctps === true || documentos.some(d => normalizar(d.tipo) === 'ctps');\nconst temCep = contexto.tem_cep === true || /^\\d{8}$/.test(String(candidato.cep ?? '').replace(/\\D/g, ''));\nconst etapasDocumentais = new Set(['AGUARDANDO_CTPS_CEP', 'AGUARDANDO_CTPS', 'AGUARDANDO_CEP']);\nconst etapasAprovadas = new Set(['APROVADO_TRIAGEM', 'AGUARDANDO_APRESENTACAO', 'GERANDO_OPCOES_ENTREVISTA', 'ESCOLHENDO_HORARIO', 'AGUARDANDO_ENTREVISTA', 'ENTREVISTA_AGENDADA']);\n\n// Impede retrocesso depois de aprovação ou reprovação.\nif (statusAtual === 'REPROVADO') {\n  novoStatus = 'REPROVADO';\n  novaEtapa = etapaAtual || 'REPROVADO_TRIAGEM';\n  solicitarOpcoes = false;\n  opcaoEscolhida = null;\n}\nif (statusAtual === 'APROVADO' && etapasAprovadas.has(etapaAtual) && etapasDocumentais.has(novaEtapa)) {\n  novaEtapa = etapaAtual;\n  novoStatus = 'APROVADO';\n}\n\n// Corrige pedidos duplicados de CTPS/CEP.\n// A proteção considera tanto a etapa retornada quanto o próprio texto, pois o\n// modelo pode preservar uma etapa avançada e ainda assim repetir o pedido.\nconst mensagemPedeCtps = parecePedidoDocumento(mensagem, 'ctps')\n  || parecePedidoDocumento(mensagem, 'carteira de trabalho');\nconst mensagemPedeCep = parecePedidoDocumento(mensagem, 'cep');\n\nif (\n  temCtps\n  && temCep\n  && (\n    etapasDocumentais.has(novaEtapa)\n    || mensagemPedeCtps\n    || mensagemPedeCep\n  )\n) {\n  solicitarOpcoes = false;\n  opcaoEscolhida = null;\n\n  if (\n    candidato.aprovado === true\n    && !texto(candidato.apresentacao_profissional)\n  ) {\n    novaEtapa = 'AGUARDANDO_APRESENTACAO';\n    novoStatus = 'APROVADO';\n    evento = evento === 'APRESENTACAO_PROFISSIONAL_SOLICITADA'\n      ? evento\n      : '';\n    mensagem = 'Recebi seu CEP e sua CTPS. Agora, antes da entrevista, conte brevemente sobre suas experiências e seus principais pontos fortes.';\n  } else if (\n    statusAtual === 'APROVADO'\n    && texto(candidato.apresentacao_profissional)\n    && !entrevistaAtual\n  ) {\n    novaEtapa = opcoesEntrevista.length\n      ? 'ESCOLHENDO_HORARIO'\n      : 'GERANDO_OPCOES_ENTREVISTA';\n    novoStatus = 'APROVADO';\n    solicitarOpcoes = opcoesEntrevista.length === 0;\n    mensagem = opcoesEntrevista.length\n      ? mensagemComOpcoes()\n      : 'Recebi seu CEP e sua CTPS. Vou consultar opções disponíveis para a entrevista.';\n  } else {\n    novaEtapa = etapaAtual && !etapasDocumentais.has(etapaAtual)\n      ? etapaAtual\n      : 'ANALISANDO_DOCUMENTOS';\n    novoStatus = statusAtual || novoStatus;\n    mensagem = 'Recebi seu CEP e sua CTPS. A análise está em andamento e você não precisa enviar os documentos novamente.';\n  }\n}\n\nif (temCtps && !temCep && (novaEtapa === 'AGUARDANDO_CTPS' || novaEtapa === 'AGUARDANDO_CTPS_CEP' || parecePedidoDocumento(mensagem, 'ctps'))) {\n  novaEtapa = candidato.aprovado === true ? 'AGUARDANDO_CEP' : 'AGUARDANDO_CEP';\n  mensagem = 'Sua CTPS já foi recebida. Agora preciso apenas do seu CEP com 8 números.';\n}\n\nif (temCep && !temCtps && (novaEtapa === 'AGUARDANDO_CEP' || novaEtapa === 'AGUARDANDO_CTPS_CEP' || parecePedidoDocumento(mensagem, 'cep'))) {\n  novaEtapa = 'AGUARDANDO_CTPS';\n  mensagem = 'Seu CEP já foi recebido. Agora preciso apenas da Carteira de Trabalho Digital em PDF.';\n}\n\n\nconst vagasAtivas = Array.isArray(contexto.vagas_ativas) ? contexto.vagas_ativas : [];\n\nconst mensagemNormalizadaAtual = normalizar(mensagemAtual);\nconst pediuNovaCandidatura = /(outra vaga|nova vaga|nova oportunidade|quero me candidatar|tenho interesse.*vaga|vi.*vaga|posso tentar outra|quero outra)/.test(mensagemNormalizadaAtual);\n\nif (statusAtual === 'EM_ADMISSAO') {\n  novoStatus = 'EM_ADMISSAO';\n  novaEtapa = 'EM_ADMISSAO';\n  solicitarOpcoes = false;\n  opcaoEscolhida = null;\n  evento = '';\n  mensagem = 'Seu processo está em fase de admissão. A equipe responsável seguirá com as orientações necessárias por aqui.';\n}\n\nif (statusAtual === 'CONTRATADO') {\n  novoStatus = 'CONTRATADO';\n  novaEtapa = 'CONTRATADO';\n  solicitarOpcoes = false;\n  opcaoEscolhida = null;\n}\n\nif (statusAtual === 'REPROVADO' && pediuNovaCandidatura) {\n  novoStatus = 'EM_PROCESSO';\n  novaEtapa = 'ESCOLHENDO_VAGA';\n  solicitarOpcoes = false;\n  opcaoEscolhida = null;\n  evento = 'NOVA_CANDIDATURA_SOLICITADA';\n}\n\n\nfunction moedaVaga(valor) {\n  const numero = Number(valor);\n  if (!Number.isFinite(numero) || numero <= 0) return '';\n  return new Intl.NumberFormat('pt-BR', {\n    style: 'currency',\n    currency: 'BRL'\n  }).format(numero);\n}\n\nfunction percentualVaga(valor) {\n  const numero = Number(valor);\n  if (!Number.isFinite(numero)) return '';\n  return new Intl.NumberFormat('pt-BR', {\n    maximumFractionDigits: 2\n  }).format(numero) + '%';\n}\n\nfunction itensTexto(valor) {\n  return String(valor ?? '')\n    .split(/\\r?\\n|;|\\|/)\n    .map(item => item.trim().replace(/^[-•*]\\s*/, ''))\n    .filter(Boolean);\n}\n\nfunction mensagemVagasDeterministica() {\n  if (!vagasAtivas.length) {\n    return 'No momento não temos vagas ativas. Assim que surgir uma nova oportunidade, você poderá consultar por aqui.';\n  }\n\n  const blocos = vagasAtivas.map((vaga, indice) => {\n    const titulo = texto(vaga.titulo || vaga.cargo, 'Vaga disponível');\n    const local = [texto(vaga.bairro), texto(vaga.cidade)]\n      .filter(Boolean)\n      .join(' — ');\n    const escala = texto(vaga.escala, 'A confirmar');\n    const horario = texto(vaga.horario, 'A confirmar');\n    const salario = moedaVaga(vaga.salario);\n    const beneficios = itensTexto(vaga.beneficios).slice(0, 4);\n    const insalubridadeAtiva = vaga.possui_insalubridade === true\n      || normalizar(vaga.possui_insalubridade) === 'true';\n    const percentual = percentualVaga(vaga.percentual_insalubridade);\n    const salarioNumero = Number(vaga.salario);\n    const percentualNumero = Number(vaga.percentual_insalubridade);\n    const adicional = insalubridadeAtiva\n      && Number.isFinite(salarioNumero)\n      && Number.isFinite(percentualNumero)\n      && salarioNumero > 0\n      ? moedaVaga(salarioNumero * (percentualNumero / 100))\n      : '';\n\n    return [\n      `${vaga.numero_opcao || indice + 1}. ${titulo}`,\n      local ? `📍 ${local}` : '',\n      `📅 Escala: ${escala}`,\n      `⏰ Horário: ${horario}`,\n      salario ? `💰 Salário: ${salario}` : '',\n      insalubridadeAtiva\n        ? `🧪 Insalubridade: ${percentual || 'percentual a confirmar'}${adicional ? ` — adicional aproximado de ${adicional}` : ''}`\n        : '',\n      beneficios.length ? `🎁 Benefícios: ${beneficios.join(', ')}` : ''\n    ].filter(Boolean).join('\\n');\n  });\n\n  return blocos.join('\\n\\n')\n    + '\\n\\nQual dessas vagas você prefere? Responda com o número ou com o nome da vaga.';\n}\n\nconst deveListarVagas = novaEtapa === 'ESCOLHENDO_VAGA'\n  && (!contexto.vaga_atual || (statusAtual === 'REPROVADO' && pediuNovaCandidatura))\n  && vagasAtivas.length > 0\n  && (\n    evento === 'INTERESSE_CONFIRMADO'\n    || /(vaga|oportunidade|emprego|trabalho|interesse)/.test(normalizar(mensagemAtual))\n    || /(qual dessas|escolha|opcao)/.test(normalizar(mensagem))\n  );\n\nif (deveListarVagas) {\n  mensagem = mensagemVagasDeterministica();\n}\n\nif (!mensagem) {\n  mensagem = 'Certo. Vou continuar o atendimento a partir da etapa atual.';\n}\n\nconst candidatoId = Number(candidato.id ?? entrada.candidato_id ?? entrada.id);\nif (!Number.isInteger(candidatoId) || candidatoId <= 0) {\n  throw new Error(`candidato_id inválido: ${candidato.id ?? entrada.candidato_id ?? entrada.id}`);\n}\n\nreturn [{\n  json: {\n    candidato_id: candidatoId,\n    telefone: texto(candidato.telefone ?? $('Extrair telefone').first().json.telefone),\n    mensagem,\n    nome_informado: texto(resposta.nome_informado),\n    nova_etapa: novaEtapa,\n    novo_status: novoStatus,\n    evento,\n    experiencia_6_meses: booleanoOuNull(resposta.experiencia_6_meses),\n    vaga_escolhida: texto(resposta.vaga_escolhida),\n    apresentacao_profissional: texto(resposta.apresentacao_profissional),\n    personalidade_resumo: texto(resposta.personalidade_resumo),\n    personalidade_tags: normalizarTags(resposta.personalidade_tags),\n    solicitar_opcoes_entrevista: solicitarOpcoes,\n    opcao_horario_escolhida: opcaoEscolhida\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4640,
+        896
+      ],
+      "id": "c7f6ded3-06fb-4ddf-bb49-0bfe0fd4e031",
+      "name": "Saída IA"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n    id,\n    telefone,\n    cep\nFROM candidatos\nWHERE id = $1\nLIMIT 1;",
+        "options": {
+          "queryReplacement": "=={{ [  Number(    $('Buscar candidato PDF').first().json.id  )] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3728,
+        336
+      ],
+      "id": "171ad232-9876-4900-9eb9-42b40265aafb",
+      "name": "Recarregar CEP antes da análise",
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO atendimento_logs\n(\n    mensagem_id,\n    telefone_extraido,\n    raw_from,\n    raw_sender_alt,\n    tipo_mensagem,\n    mime_type,\n    nome_arquivo,\n    status,\n    payload,\n    created_at,\n    updated_at\n)\nVALUES\n(\n    NULLIF($1::TEXT, ''),\n    NULLIF($2::TEXT, ''),\n    NULLIF($3::TEXT, ''),\n    NULLIF($4::TEXT, ''),\n    NULLIF($5::TEXT, ''),\n    NULLIF($6::TEXT, ''),\n    NULLIF($7::TEXT, ''),\n    'RECEBIDO',\n    $8::JSONB,\n    NOW(),\n    NOW()\n)\nON CONFLICT (mensagem_id)\nWHERE mensagem_id IS NOT NULL\nDO UPDATE SET\n    telefone_extraido = COALESCE(EXCLUDED.telefone_extraido, atendimento_logs.telefone_extraido),\n    raw_from = COALESCE(EXCLUDED.raw_from, atendimento_logs.raw_from),\n    raw_sender_alt = COALESCE(EXCLUDED.raw_sender_alt, atendimento_logs.raw_sender_alt),\n    tipo_mensagem = COALESCE(EXCLUDED.tipo_mensagem, atendimento_logs.tipo_mensagem),\n    mime_type = COALESCE(EXCLUDED.mime_type, atendimento_logs.mime_type),\n    nome_arquivo = COALESCE(EXCLUDED.nome_arquivo, atendimento_logs.nome_arquivo),\n    payload = COALESCE(EXCLUDED.payload, atendimento_logs.payload),\n    updated_at = NOW()\nRETURNING id, mensagem_id, telefone_extraido, tipo_mensagem;",
+        "options": {
+          "queryReplacement": "={{ [\n  String($('Extrair telefone').first().json.mensagem_id ?? ''),\n  String($('Extrair telefone').first().json.telefone ?? ''),\n  String($('Extrair telefone').first().json.raw_from ?? ''),\n  String($('Extrair telefone').first().json.raw_sender_alt ?? ''),\n  String($('Extrair telefone').first().json.tipo_mensagem ?? ''),\n  String($('Extrair telefone').first().json.mime_type ?? ''),\n  String($('Extrair telefone').first().json.nome_arquivo ?? ''),\n  JSON.stringify($('Extrair telefone').first().json.payload_bruto ?? {})\n] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        400,
+        880
+      ],
+      "id": "cb523121-307e-4a92-9a2d-71e3e35dc83f",
+      "name": "Registrar entrada bruta",
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "74d7337d-3835-4dac-8f7f-61400b0ab233",
+              "leftValue": "={{ (() => { const telefone = String($('Extrair telefone').first().json.telefone ?? '').replace(/\\D/g, ''); return telefone.startsWith('55') && (telefone.length === 12 || telefone.length === 13); })() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        608,
+        880
+      ],
+      "id": "c68c2425-49e4-40b4-8e49-d651b115e1e8",
+      "name": "Telefone válido?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const entrada = $input.first().json ?? {};\nconst paginas = Array.isArray(entrada.pages) ? entrada.pages : [];\nconst textoOcr = paginas\n  .map((pagina, indice) => `### Página ${indice + 1}\\n${String(pagina.markdown ?? pagina.text ?? '')}`)\n  .join('\\n\\n')\n  .trim();\n\nconst nomeArquivo = String(\n  $('Extrair telefone').first().json.nome_arquivo\n  ?? $('Preparar PDF para armazenamento').first().json.nome_arquivo_documento\n  ?? ''\n);\n\nfunction normalizar(valor) {\n  return String(valor ?? '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase();\n}\n\nconst conteudo = normalizar(`${nomeArquivo}\\n${textoOcr}`);\nconst contar = (termos) => termos.reduce((total, termo) => total + (conteudo.includes(termo) ? 1 : 0), 0);\n\nconst sinaisCtpsFortes = [\n  'carteira de trabalho digital',\n  'contratos de trabalho',\n  'dados pessoais',\n  'registro de trabalho',\n  'historico profissional',\n  'remuneracoes',\n  'vinculos empregaticios'\n];\nconst sinaisCtpsComuns = [\n  'data de admissao',\n  'data admissao',\n  'empregador',\n  'cnpj',\n  'cbo',\n  'salario contratual',\n  'tipo de contrato',\n  'ocupacao inicial',\n  'anotacoes'\n];\nconst sinaisCurriculoFortes = [\n  'curriculo',\n  'curriculum vitae',\n  'objetivo profissional',\n  'resumo profissional',\n  'experiencia profissional',\n  'formacao academica'\n];\nconst sinaisCurriculoComuns = [\n  'habilidades',\n  'competencias',\n  'cursos complementares',\n  'qualificacoes',\n  'contato',\n  'email',\n  'telefone',\n  'linkedin'\n];\n\nlet pontosCtps = contar(sinaisCtpsFortes) * 3 + contar(sinaisCtpsComuns);\nlet pontosCurriculo = contar(sinaisCurriculoFortes) * 3 + contar(sinaisCurriculoComuns);\n\nif (/ctps|carteira.*trabalho/i.test(nomeArquivo)) pontosCtps += 5;\nif (/curr[ií]culo|curriculum|cv([._ -]|$)/i.test(nomeArquivo)) pontosCurriculo += 5;\n\nlet tipoDocumento = 'OUTRO';\nlet confianca = 'BAIXA';\n\nif (pontosCtps >= 6 && pontosCtps >= pontosCurriculo + 2) {\n  tipoDocumento = 'CTPS';\n  confianca = pontosCtps >= 12 ? 'ALTA' : 'MEDIA';\n} else if (pontosCurriculo >= 6 && pontosCurriculo >= pontosCtps + 2) {\n  tipoDocumento = 'CURRICULO';\n  confianca = pontosCurriculo >= 12 ? 'ALTA' : 'MEDIA';\n}\n\nreturn [{\n  json: {\n    ...entrada,\n    tipo_documento: tipoDocumento,\n    classificacao_confianca: confianca,\n    pontos_ctps: pontosCtps,\n    pontos_curriculo: pontosCurriculo,\n    texto_ocr: textoOcr,\n    classificacao: {\n      tipo: tipoDocumento,\n      confianca,\n      pontos_ctps: pontosCtps,\n      pontos_curriculo: pontosCurriculo,\n      nome_arquivo: nomeArquivo\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2896,
+        432
+      ],
+      "id": "28695e93-1d4e-4d5d-b144-bbce80a12e4d",
+      "name": "Classificar documento PDF"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "059210ff-a675-4487-a247-1f586a9b91c3",
+              "leftValue": "={{ $json.tipo_documento === 'CTPS' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3104,
+        432
+      ],
+      "id": "0a279fff-fa5f-4d95-a55d-e32d85b7c562",
+      "name": "Documento é CTPS?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9bf02609-fcd0-4979-ba95-70be7dbd2549",
+              "leftValue": "={{ $json.tipo_documento === 'CURRICULO' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3312,
+        640
+      ],
+      "id": "1861b8bb-bdc6-4046-b1ac-e6b2cdd53a26",
+      "name": "Documento é currículo?"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH documento_atualizado AS\n(\n    UPDATE documentos\n    SET\n        tipo = 'CURRICULO',\n        titulo = 'Currículo',\n        arquivo = COALESCE(NULLIF($3::TEXT, ''), arquivo),\n        nome_arquivo = COALESCE(NULLIF($3::TEXT, ''), nome_arquivo, arquivo),\n        mime_type = COALESCE(NULLIF($4::TEXT, ''), mime_type, 'application/pdf'),\n        tamanho_bytes = NULLIF($5::TEXT, '')::BIGINT,\n        conteudo = CASE\n          WHEN NULLIF($6::TEXT, '') IS NULL THEN conteudo\n          ELSE DECODE($6::TEXT, 'base64')\n        END,\n        resultado = $7::JSONB\n    WHERE id = $2\n      AND candidato_id = $1\n    RETURNING id\n),\ncandidato_atualizado AS\n(\n    UPDATE candidatos c\n    SET\n        etapa = CASE\n          WHEN c.status IN ('APROVADO', 'REPROVADO', 'CONTRATADO', 'ENCERRADO') THEN c.etapa\n          WHEN EXISTS (\n              SELECT 1 FROM documentos d\n              WHERE d.candidato_id = c.id\n                AND UPPER(COALESCE(d.tipo, '')) = 'CTPS'\n          ) THEN c.etapa\n          WHEN REGEXP_REPLACE(COALESCE(c.cep, ''), '\\D', '', 'g') ~ '^\\d{8}$'\n            THEN 'AGUARDANDO_CTPS'\n          ELSE 'AGUARDANDO_CTPS_CEP'\n        END,\n        status = CASE\n          WHEN c.status IN ('APROVADO', 'REPROVADO', 'CONTRATADO', 'ENCERRADO') THEN c.status\n          ELSE 'EM_PROCESSO'\n        END,\n        updated_at = NOW()\n    WHERE c.id = $1\n    RETURNING c.*\n),\nretorno AS\n(\n    SELECT\n        c.id AS candidato_id,\n        c.telefone,\n        CASE\n          WHEN EXISTS (\n              SELECT 1 FROM documentos d\n              WHERE d.candidato_id = c.id\n                AND UPPER(COALESCE(d.tipo, '')) = 'CTPS'\n          )\n          THEN 'Currículo recebido e armazenado. ✅ Sua CTPS já está registrada e o processo continuará normalmente.'\n          WHEN REGEXP_REPLACE(COALESCE(c.cep, ''), '\\D', '', 'g') ~ '^\\d{8}$'\n          THEN 'Currículo recebido e armazenado. ✅ Ele é opcional. Para continuar no processo, envie a Carteira de Trabalho Digital como Documento PDF. A CTPS é obrigatória para a análise.'\n          ELSE 'Currículo recebido e armazenado. ✅ Ele é opcional. Para continuar, envie a Carteira de Trabalho Digital como Documento PDF e informe seu CEP com 8 números. A CTPS é obrigatória.'\n        END AS mensagem\n    FROM candidato_atualizado c\n),\nmensagem_salva AS\n(\n    INSERT INTO mensagens (candidato_id, quem, mensagem, created_at)\n    SELECT candidato_id, 'IA', mensagem, NOW()\n    FROM retorno\n    RETURNING id\n),\nevento_salvo AS\n(\n    INSERT INTO eventos (candidato_id, evento, descricao, created_at)\n    SELECT candidato_id, 'CURRICULO_RECEBIDO', mensagem, NOW()\n    FROM retorno\n    RETURNING id\n),\nlog_atualizado AS\n(\n    UPDATE atendimento_logs\n    SET\n        candidato_id = $1,\n        status = 'DOCUMENTO_CLASSIFICADO',\n        detalhe = 'Currículo identificado e armazenado.',\n        updated_at = NOW()\n    WHERE mensagem_id = NULLIF($8::TEXT, '')\n    RETURNING id\n)\nSELECT\n    r.*,\n    $9::TEXT AS session,\n    'CURRICULO'::TEXT AS tipo_documento\nFROM retorno r;",
+        "options": {
+          "queryReplacement": "={{ [\n  Number($('Buscar candidato PDF').first().json.id),\n  Number($('Salvar recebimento PDF').first().json.documento_id),\n  String($('Preparar PDF para armazenamento').first().json.nome_arquivo_documento ?? $('Extrair telefone').first().json.nome_arquivo ?? 'documento.pdf'),\n  String($('Preparar PDF para armazenamento').first().json.mime_type_documento ?? 'application/pdf'),\n  Number($('Preparar PDF para armazenamento').first().json.tamanho_bytes_documento ?? 0),\n  String($('Preparar PDF para armazenamento').first().json.arquivo_base64 ?? ''),\n  JSON.stringify({ status: 'CLASSIFICADO', ...($('Classificar documento PDF').first().json.classificacao ?? {}) }),\n  String($('Extrair telefone').first().json.mensagem_id ?? ''),\n  String($('Webhook').first().json.body?.session ?? 'whats_junior')\n] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3520,
+        560
+      ],
+      "id": "87a73633-62de-44a7-934a-39c09334d7a2",
+      "name": "Persistir currículo",
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH documento_atualizado AS\n(\n    UPDATE documentos\n    SET\n        tipo = 'OUTRO',\n        titulo = 'Documento não reconhecido',\n        arquivo = COALESCE(NULLIF($3::TEXT, ''), arquivo),\n        nome_arquivo = COALESCE(NULLIF($3::TEXT, ''), nome_arquivo, arquivo),\n        mime_type = COALESCE(NULLIF($4::TEXT, ''), mime_type, 'application/pdf'),\n        tamanho_bytes = NULLIF($5::TEXT, '')::BIGINT,\n        conteudo = CASE\n          WHEN NULLIF($6::TEXT, '') IS NULL THEN conteudo\n          ELSE DECODE($6::TEXT, 'base64')\n        END,\n        resultado = $7::JSONB\n    WHERE id = $2\n      AND candidato_id = $1\n    RETURNING id\n),\ncandidato_atualizado AS\n(\n    UPDATE candidatos c\n    SET\n        etapa = CASE\n          WHEN c.status IN ('APROVADO', 'REPROVADO', 'CONTRATADO', 'ENCERRADO') THEN c.etapa\n          WHEN EXISTS (\n              SELECT 1 FROM documentos d\n              WHERE d.candidato_id = c.id\n                AND UPPER(COALESCE(d.tipo, '')) = 'CTPS'\n          ) THEN c.etapa\n          WHEN REGEXP_REPLACE(COALESCE(c.cep, ''), '\\D', '', 'g') ~ '^\\d{8}$'\n            THEN 'AGUARDANDO_CTPS'\n          ELSE 'AGUARDANDO_CTPS_CEP'\n        END,\n        status = CASE\n          WHEN c.status IN ('APROVADO', 'REPROVADO', 'CONTRATADO', 'ENCERRADO') THEN c.status\n          ELSE 'EM_PROCESSO'\n        END,\n        updated_at = NOW()\n    WHERE c.id = $1\n    RETURNING c.*\n),\nretorno AS\n(\n    SELECT\n        c.id AS candidato_id,\n        c.telefone,\n        CASE\n          WHEN REGEXP_REPLACE(COALESCE(c.cep, ''), '\\D', '', 'g') ~ '^\\d{8}$'\n          THEN 'Recebi o PDF, mas ele não parece ser a Carteira de Trabalho Digital nem um currículo. Para continuar, envie a CTPS Digital como Documento PDF.'\n          ELSE 'Recebi o PDF, mas ele não parece ser a Carteira de Trabalho Digital nem um currículo. Para continuar, envie a CTPS Digital como Documento PDF e informe seu CEP com 8 números.'\n        END AS mensagem\n    FROM candidato_atualizado c\n),\nmensagem_salva AS\n(\n    INSERT INTO mensagens (candidato_id, quem, mensagem, created_at)\n    SELECT candidato_id, 'IA', mensagem, NOW()\n    FROM retorno\n    RETURNING id\n),\nevento_salvo AS\n(\n    INSERT INTO eventos (candidato_id, evento, descricao, created_at)\n    SELECT candidato_id, 'DOCUMENTO_NAO_RECONHECIDO', mensagem, NOW()\n    FROM retorno\n    RETURNING id\n),\nlog_atualizado AS\n(\n    UPDATE atendimento_logs\n    SET\n        candidato_id = $1,\n        status = 'DOCUMENTO_CLASSIFICADO',\n        detalhe = 'PDF não reconhecido como CTPS ou currículo.',\n        updated_at = NOW()\n    WHERE mensagem_id = NULLIF($8::TEXT, '')\n    RETURNING id\n)\nSELECT\n    r.*,\n    $9::TEXT AS session,\n    'OUTRO'::TEXT AS tipo_documento\nFROM retorno r;",
+        "options": {
+          "queryReplacement": "={{ [\n  Number($('Buscar candidato PDF').first().json.id),\n  Number($('Salvar recebimento PDF').first().json.documento_id),\n  String($('Preparar PDF para armazenamento').first().json.nome_arquivo_documento ?? $('Extrair telefone').first().json.nome_arquivo ?? 'documento.pdf'),\n  String($('Preparar PDF para armazenamento').first().json.mime_type_documento ?? 'application/pdf'),\n  Number($('Preparar PDF para armazenamento').first().json.tamanho_bytes_documento ?? 0),\n  String($('Preparar PDF para armazenamento').first().json.arquivo_base64 ?? ''),\n  JSON.stringify({ status: 'CLASSIFICADO', ...($('Classificar documento PDF').first().json.classificacao ?? {}) }),\n  String($('Extrair telefone').first().json.mensagem_id ?? ''),\n  String($('Webhook').first().json.body?.session ?? 'whats_junior')\n] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3520,
+        736
+      ],
+      "id": "2a4f470b-c15a-4329-85cc-4e60e9c2ff61",
+      "name": "Persistir documento não reconhecido",
+      "credentials": {
+        "postgres": {
+          "id": "tZw9XBnM0uOBRBeF",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Start Typing",
+        "session": "={{ $json.session ?? $('Webhook').first().json.body?.session ?? 'whats_junior' }}",
+        "chatId": "={{ String($json.telefone ?? $('Extrair telefone').first().json.telefone ?? '').replace(/\\D/g, '') + '@c.us' }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        3760,
+        656
+      ],
+      "id": "ff2a528b-0fc0-4696-ae82-91fd86d93da7",
+      "name": "Start Typing documento",
+      "credentials": {
+        "wahaApi": {
+          "id": "p3G9VOeOuySczl72",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3968,
+        656
+      ],
+      "id": "bd7c4dfe-d5cd-49e3-b18b-52b97ad27a2c",
+      "name": "Wait documento",
+      "webhookId": "58b2be7a-b060-409a-9a69-aca5cb0e13a7"
+    },
+    {
+      "parameters": {
+        "resource": "Chatting",
+        "operation": "Send Text",
+        "session": "={{ $json.session ?? $('Webhook').first().json.body?.session ?? 'whats_junior' }}",
+        "chatId": "={{ String($json.telefone ?? $('Extrair telefone').first().json.telefone ?? '').replace(/\\D/g, '') + '@c.us' }}",
+        "reply_to": "=",
+        "text": "={{ (() => { let mensagem = ''; try { mensagem = String($('Persistir currículo').first().json.mensagem ?? '').trim(); } catch {} if (!mensagem) { try { mensagem = String($('Persistir documento não reconhecido').first().json.mensagem ?? '').trim(); } catch {} } return mensagem || 'Documento recebido. O currículo é opcional, mas a CTPS Digital em PDF é obrigatória para continuar.'; })() }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-waha.WAHA",
+      "typeVersion": 202411,
+      "position": [
+        4176,
+        656
+      ],
+      "id": "97d19351-6134-4825-ac80-1d1efccc96b6",
+      "name": "Enviar retorno documento",
+      "credentials": {
+        "wahaApi": {
+          "id": "p3G9VOeOuySczl72",
+          "name": "WAHA account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b5d0e4fa-4f09-4344-93e1-d4dea838ca37",
+              "leftValue": "={{ $json.acao_agendamento === 'NORMAL' && $json.status === 'REPROVADO' && ['REPROVADO_PRE_TRIAGEM','REPROVADO_TRIAGEM'].includes($json.etapa) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        5312,
+        960
+      ],
+      "id": "dbf27580-9f0c-4938-8179-f7e59dbbd9a2",
+      "name": "É reprovação automática da conversa?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const d=$input.first().json;\nreturn [{json:{\n candidato_id:Number(d.candidato_id ?? d.id),\n origem:String(d.etapa)==='REPROVADO_PRE_TRIAGEM'?'TRIAGEM_EXPERIENCIA_DECLARADA':'TRIAGEM_AUTOMATICA',\n mensagem_base:String(d.mensagem||''),\n session:String(d.session||$('Webhook').first().json.body?.session||'whats_junior'),\n finalizar_buffer:true\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5568,
+        912
+      ],
+      "id": "2fc7b2ed-30c7-4ca2-a06e-747e57b858c5",
+      "name": "Preparar reprovação da conversa"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0b0cd1a1-77dd-4836-b180-bb6dd977ec50",
+              "leftValue": "={{ $json.status === 'REPROVADO' && $json.etapa === 'REPROVADO_TRIAGEM' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2784,
+        -752
+      ],
+      "id": "56a0dc09-e897-4696-bd88-6004772babf6",
+      "name": "CTPS foi reprovada?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const d=$input.first().json;\nreturn [{json:{\n candidato_id:Number(d.candidato_id),\n origem:'TRIAGEM_CTPS',\n mensagem_base:String(d.mensagem||''),\n session:String($('Webhook').first().json.body?.session||'whats_junior'),\n finalizar_buffer:false\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3040,
+        -864
+      ],
+      "id": "7283b35f-52b9-430b-b480-ca55419cff36",
+      "name": "Preparar reprovação da CTPS"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "SELECIONE_O_WORKFLOW_07_V4_1",
+          "mode": "id",
+          "cachedResultName": "[GENESIS IA] Reprovação pontual + convite do grupo V4.1"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        5824,
+        832
+      ],
+      "id": "5d6e189e-5469-41e4-a38a-eb6d2a133fe1",
+      "name": "Executar reprovação e convite do grupo"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "eabf54b5-341d-49b8-a435-f76572a06f16",
+              "leftValue": "={{ $json.finalizar_buffer === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        6080,
+        832
+      ],
+      "id": "08c77001-7ed7-4fdd-b1e4-ea50b14a4553",
+      "name": "Precisa limpar buffer depois do convite?"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "É mensagem privada recebida?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Typing2": {
+      "main": [
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Saída IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message2": {
+      "main": [
+        [
+          {
+            "node": "Limpar buffer processado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair telefone": {
+      "main": [
+        [
+          {
+            "node": "Registrar entrada bruta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar mensagem usuário": {
+      "main": [
+        [
+          {
+            "node": "Adicionar mensagem ao buffer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar últimas mensagens": {
+      "main": [
+        [
+          {
+            "node": "Buscar documentos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar documentos": {
+      "main": [
+        [
+          {
+            "node": "Buscar eventos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar eventos": {
+      "main": [
+        [
+          {
+            "node": "Buscar opções de entrevista",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contexto IA": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar candidato": {
+      "main": [
+        [
+          {
+            "node": "Salvar mensagem usuário",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Persistir resposta IA": {
+      "main": [
+        [
+          {
+            "node": "Definir ação de entrevista",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É mensagem privada recebida?": {
+      "main": [
+        [
+          {
+            "node": "Extrair telefone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É PDF?": {
+      "main": [
+        [
+          {
+            "node": "Buscar candidato PDF",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "É mensagem de texto?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É mensagem de texto?": {
+      "main": [
+        [
+          {
+            "node": "Buscar candidato",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Start Typing3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar candidato PDF": {
+      "main": [
+        [
+          {
+            "node": "Cancelar buffer ao receber PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Baixar PDF WAHA": {
+      "main": [
+        [
+          {
+            "node": "Validar download",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar download": {
+      "main": [
+        [
+          {
+            "node": "Preparar PDF para armazenamento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OCR - Enviar PDF": {
+      "main": [
+        [
+          {
+            "node": "OCR - Consultar processamento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OCR - Consultar processamento": {
+      "main": [
+        [
+          {
+            "node": "OCR - Obter texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Extrair dados CTPS",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OCR - Obter texto": {
+      "main": [
+        [
+          {
+            "node": "Classificar documento PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair dados CTPS": {
+      "main": [
+        [
+          {
+            "node": "Recarregar CEP antes da análise",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Persistir análise CTPS": {
+      "main": [
+        [
+          {
+            "node": "CTPS foi reprovada?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Typing CTPS": {
+      "main": [
+        [
+          {
+            "node": "Wait CTPS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait CTPS": {
+      "main": [
+        [
+          {
+            "node": "Enviar resultado CTPS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar resultado CTPS": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualizar CEP se informado": {
+      "main": [
+        [
+          {
+            "node": "Buscar contexto de vagas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait3": {
+      "main": [
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Typing3": {
+      "main": [
+        [
+          {
+            "node": "Wait3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar resultado CTPS": {
+      "main": [
+        [
+          {
+            "node": "Persistir análise CTPS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assumir lote mais recente": {
+      "main": [
+        [
+          {
+            "node": "Extrair código da vaga",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Adicionar mensagem ao buffer": {
+      "main": [
+        [
+          {
+            "node": "Aguardar novas mensagens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aguardar novas mensagens": {
+      "main": [
+        [
+          {
+            "node": "Assumir lote mais recente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cancelar buffer ao receber PDF": {
+      "main": [
+        [
+          {
+            "node": "Salvar recebimento PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair código da vaga": {
+      "main": [
+        [
+          {
+            "node": "Vincular vaga informada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vincular vaga informada": {
+      "main": [
+        [
+          {
+            "node": "Atualizar CEP se informado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar contexto de vagas": {
+      "main": [
+        [
+          {
+            "node": "Buscar últimas mensagens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar PDF para armazenamento": {
+      "main": [
+        [
+          {
+            "node": "OCR - Enviar PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar opções de entrevista": {
+      "main": [
+        [
+          {
+            "node": "Contexto IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Definir ação de entrevista": {
+      "main": [
+        [
+          {
+            "node": "Precisa acionar agenda?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Precisa acionar agenda?": {
+      "main": [
+        [
+          {
+            "node": "Executar agenda de entrevistas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "É reprovação automática da conversa?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executar agenda de entrevistas": {
+      "main": [
+        [
+          {
+            "node": "Normalizar retorno da agenda",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar retorno da agenda": {
+      "main": [
+        [
+          {
+            "node": "Start Typing2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Saída IA": {
+      "main": [
+        [
+          {
+            "node": "Persistir resposta IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recarregar CEP antes da análise": {
+      "main": [
+        [
+          {
+            "node": "Preparar resultado CTPS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar entrada bruta": {
+      "main": [
+        [
+          {
+            "node": "Telefone válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telefone válido?": {
+      "main": [
+        [
+          {
+            "node": "É PDF?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Classificar documento PDF": {
+      "main": [
+        [
+          {
+            "node": "Documento é CTPS?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Documento é CTPS?": {
+      "main": [
+        [
+          {
+            "node": "Extrair dados CTPS",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Documento é currículo?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Documento é currículo?": {
+      "main": [
+        [
+          {
+            "node": "Persistir currículo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Persistir documento não reconhecido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Persistir currículo": {
+      "main": [
+        [
+          {
+            "node": "Start Typing documento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Persistir documento não reconhecido": {
+      "main": [
+        [
+          {
+            "node": "Start Typing documento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Typing documento": {
+      "main": [
+        [
+          {
+            "node": "Wait documento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait documento": {
+      "main": [
+        [
+          {
+            "node": "Enviar retorno documento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar recebimento PDF": {
+      "main": [
+        [
+          {
+            "node": "Baixar PDF WAHA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "É reprovação automática da conversa?": {
+      "main": [
+        [
+          {
+            "node": "Preparar reprovação da conversa",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Start Typing2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar reprovação da conversa": {
+      "main": [
+        [
+          {
+            "node": "Executar reprovação e convite do grupo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CTPS foi reprovada?": {
+      "main": [
+        [
+          {
+            "node": "Preparar reprovação da CTPS",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Start Typing CTPS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar reprovação da CTPS": {
+      "main": [
+        [
+          {
+            "node": "Executar reprovação e convite do grupo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executar reprovação e convite do grupo": {
+      "main": [
+        [
+          {
+            "node": "Precisa limpar buffer depois do convite?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Precisa limpar buffer depois do convite?": {
+      "main": [
+        [
+          {
+            "node": "Limpar buffer processado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timezone": "America/Sao_Paulo"
+  },
+  "versionId": "b40aa783-9c29-4ce0-8b4e-bb69371507c8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ed9e12d078f2b3917c211785e024e75abcc7a95909f7ad754ac4b7210527e838"
+  },
+  "nodeGroups": [],
+  "id": "raVt8OqeFlT0FJsN",
+  "tags": []
+}

@@ -1,0 +1,22 @@
+{
+  "name": "genesis-ia-public-portal",
+  "version": "5.0.1",
+  "private": true,
+  "description": "Landing page e portal público de vagas da Genesis IA, integrado ao PostgreSQL do painel.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch --env-file=.env server.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "express": "5.2.1",
+    "express-rate-limit": "8.5.2",
+    "helmet": "8.1.0",
+    "pg": "8.22.0",
+    "qrcode": "1.5.4",
+    "zod": "4.4.3"
+  }
+}
