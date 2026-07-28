@@ -1,0 +1,23 @@
+{
+  "name": "genesis-ia-public-portal",
+  "version": "6.0.0",
+  "private": true,
+  "description": "Portal público Genesis IA V6 — responsivo, modo escuro, SEO, candidatura e navegação móvel.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch --env-file=.env server.js",
+    "test": "node scripts/validate.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "express": "5.2.1",
+    "express-rate-limit": "8.5.2",
+    "helmet": "8.1.0",
+    "pg": "8.22.0",
+    "qrcode": "1.5.4",
+    "zod": "4.4.3"
+  }
+}
