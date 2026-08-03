@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Vagas e Grupos</title>
+  <desc id="desc">Encontre vagas e grupos de emprego, carreira e networking</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f5fff8"/>
+      <stop offset="1" stop-color="#e7f8ee"/>
+    </linearGradient>
+    <linearGradient id="green" x1="110" y1="95" x2="370" y2="370" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#29ce70"/>
+      <stop offset="1" stop-color="#119b50"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1090" cy="90" r="230" fill="#cdf2da" opacity=".65"/>
+  <circle cx="1050" cy="590" r="290" fill="#dff6e7"/>
+  <rect x="86" y="96" width="260" height="260" rx="62" fill="url(#green)"/>
+  <path d="M135 152h162a29 29 0 0 1 29 29v91a29 29 0 0 1-29 29h-82l-54 40v-40h-26a29 29 0 0 1-29-29v-91a29 29 0 0 1 29-29Z" fill="#fff"/>
+  <circle cx="178" cy="224" r="24" fill="#119b50"/>
+  <circle cx="254" cy="224" r="24" fill="#119b50"/>
+  <path d="M149 277c10-23 30-35 53-35s43 12 53 35" fill="none" stroke="#119b50" stroke-width="17" stroke-linecap="round"/>
+  <text x="402" y="225" font-family="Arial, Helvetica, sans-serif" font-size="82" font-weight="800" fill="#17231c">Vagas &amp; Grupos</text>
+  <text x="405" y="296" font-family="Arial, Helvetica, sans-serif" font-size="31" font-weight="600" fill="#4a6655">Emprego, carreira e networking em um só lugar</text>
+  <rect x="405" y="348" width="510" height="80" rx="22" fill="#fff" stroke="#c9e7d3" stroke-width="3"/>
+  <text x="445" y="399" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="600" fill="#587063">Busque grupos, vagas, cidades ou profissões</text>
+  <rect x="936" y="348" width="177" height="80" rx="22" fill="#18ad58"/>
+  <text x="983" y="399" font-family="Arial, Helvetica, sans-serif" font-size="29" font-weight="800" fill="#fff">Buscar</text>
+  <text x="405" y="506" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="600" fill="#119b50">Uma iniciativa da Gênesis</text>
+</svg>
