@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Vagas &amp; Grupos</title>
+  <desc id="desc">Balão de conversa com caminho para oportunidades</desc>
+  <defs>
+    <linearGradient id="green" x1="8" y1="6" x2="57" y2="61" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#23C66A"/>
+      <stop offset="1" stop-color="#087E43"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="17" fill="url(#green)"/>
+  <path d="M14 14h36a5 5 0 0 1 5 5v23a5 5 0 0 1-5 5H32l-11 8v-8h-7a5 5 0 0 1-5-5V19a5 5 0 0 1 5-5Z" fill="#F7FFF9"/>
+  <path d="m19 29 8 9 18-18" fill="none" stroke="#0A914A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="44.5" cy="37.5" r="4.5" fill="#28D575"/>
+</svg>
