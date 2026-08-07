@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Gênesis — recrutamento conversacional</title>
+  <desc id="desc">Aquisição, triagem e entrevistas em um fluxo controlado</desc>
+  <defs>
+    <linearGradient id="bg" x1="40" y1="0" x2="1160" y2="630" gradientUnits="userSpaceOnUse"><stop stop-color="#06131F"/><stop offset=".54" stop-color="#10243A"/><stop offset="1" stop-color="#182050"/></linearGradient>
+    <linearGradient id="signal" x1="80" y1="80" x2="230" y2="230" gradientUnits="userSpaceOnUse"><stop stop-color="#28E0BD"/><stop offset="1" stop-color="#7B70FF"/></linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#28E0BD"/><stop offset="1" stop-color="#7B70FF"/></linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1110" cy="60" r="310" fill="#7B70FF" opacity=".12"/>
+  <circle cx="170" cy="650" r="300" fill="#28E0BD" opacity=".08"/>
+  <rect x="74" y="72" width="74" height="74" rx="21" fill="#0B1A29" stroke="#29445B"/>
+  <path d="M130 94a24 24 0 1 0 1.5 30" fill="none" stroke="url(#signal)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M113 111h20v15" fill="none" stroke="#F7FFFD" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="134" cy="130" r="5" fill="#28E0BD"/>
+  <text x="166" y="118" fill="#F7FFFD" font-family="Arial,sans-serif" font-size="34" font-weight="800">Gênesis</text>
+  <text x="78" y="222" fill="#7EF0D9" font-family="Arial,sans-serif" font-size="21" font-weight="700" letter-spacing="3">RECRUTAMENTO CONVERSACIONAL</text>
+  <text x="78" y="305" fill="#FFFFFF" font-family="Arial,sans-serif" font-size="50" font-weight="800" letter-spacing="-1.5">Contrate com velocidade.</text>
+  <text x="78" y="364" fill="#FFFFFF" font-family="Arial,sans-serif" font-size="50" font-weight="800" letter-spacing="-1.5">Sem perder o controle.</text>
+  <text x="78" y="427" fill="#B9C9D7" font-family="Arial,sans-serif" font-size="24">Atração, conversa e qualificação</text>
+  <text x="78" y="460" fill="#B9C9D7" font-family="Arial,sans-serif" font-size="24">em um só fluxo.</text>
+  <rect x="78" y="500" width="304" height="64" rx="18" fill="#28E0BD"/>
+  <text x="230" y="541" text-anchor="middle" fill="#06201C" font-family="Arial,sans-serif" font-size="22" font-weight="800">CONHEÇA A GÊNESIS</text>
+  <rect x="770" y="118" width="350" height="394" rx="28" fill="#0B1A29" stroke="#29445B" stroke-width="2"/>
+  <text x="807" y="169" fill="#EAF5FA" font-family="Arial,sans-serif" font-size="22" font-weight="700">Visão do funil</text>
+  <text x="1059" y="169" text-anchor="end" fill="#7EF0D9" font-family="Arial,sans-serif" font-size="16" font-weight="700">AO VIVO</text>
+  <g font-family="Arial,sans-serif">
+    <text x="807" y="228" fill="#AFC0CF" font-size="17">Novos candidatos</text><text x="1076" y="228" text-anchor="end" fill="#FFFFFF" font-size="20" font-weight="700">42</text><rect x="807" y="245" width="270" height="9" rx="4.5" fill="#1B3041"/><rect x="807" y="245" width="242" height="9" rx="4.5" fill="url(#bar)"/>
+    <text x="807" y="307" fill="#AFC0CF" font-size="17">Qualificados</text><text x="1076" y="307" text-anchor="end" fill="#FFFFFF" font-size="20" font-weight="700">24</text><rect x="807" y="324" width="270" height="9" rx="4.5" fill="#1B3041"/><rect x="807" y="324" width="176" height="9" rx="4.5" fill="url(#bar)"/>
+    <text x="807" y="386" fill="#AFC0CF" font-size="17">Entrevistas</text><text x="1076" y="386" text-anchor="end" fill="#FFFFFF" font-size="20" font-weight="700">8</text><rect x="807" y="403" width="270" height="9" rx="4.5" fill="#1B3041"/><rect x="807" y="403" width="92" height="9" rx="4.5" fill="url(#bar)"/>
+  </g>
+  <rect x="807" y="452" width="270" height="34" rx="10" fill="#142B3C"/>
+  <circle cx="829" cy="469" r="6" fill="#28E0BD"/>
+  <text x="847" y="476" fill="#C9D8E2" font-family="Arial,sans-serif" font-size="15">WhatsApp e agenda conectados</text>
+</svg>
