@@ -8,8 +8,7 @@
   function syncThemeButtons() {
     const dark = root.dataset.theme === 'dark';
     themeButtons.forEach((button) => {
-      const icon = button.querySelector('span');
-      if (icon) icon.textContent = dark ? '☀' : '☾';
+      button.setAttribute('aria-checked', String(dark));
       button.setAttribute('aria-label', dark ? 'Ativar modo claro' : 'Ativar modo escuro');
       button.title = dark ? 'Ativar modo claro' : 'Ativar modo escuro';
     });
@@ -22,6 +21,13 @@
     syncThemeButtons();
   }));
   syncThemeButtons();
+
+  document.addEventListener('error', (event) => {
+    const image = event.target;
+    if (!(image instanceof HTMLImageElement) || !image.dataset.imageFallback || image.dataset.fallbackApplied) return;
+    image.dataset.fallbackApplied = 'true';
+    image.src = image.dataset.imageFallback;
+  }, true);
 
   const menuButton = document.querySelector('[data-menu-toggle]');
   const menuBackdrop = document.querySelector('[data-menu-backdrop]');

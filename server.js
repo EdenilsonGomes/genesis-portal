@@ -295,7 +295,12 @@ function themeForVacancy(vacancy) {
 
 function imageForVacancy(vacancy) {
   if (vacancy.imagem_capa_url) return vacancy.imagem_capa_url;
-  return `${SITE_URL}/assets/jobs/${themeForVacancy(vacancy)}.jpg`;
+  return `/assets/jobs/${themeForVacancy(vacancy)}.jpg`;
+}
+
+function vacancyImage(vacancy, className = '') {
+  const fallback = `/assets/jobs/${themeForVacancy(vacancy)}.jpg`;
+  return `<img${className ? ` class="${escapeHtml(className)}"` : ''} src="${escapeHtml(imageForVacancy(vacancy))}" data-image-fallback="${escapeHtml(fallback)}" alt="Foto ilustrativa da vaga ${escapeHtml(vacancy.titulo || vacancy.cargo || '')}" loading="lazy">`;
 }
 
 function employmentType(value) {
@@ -523,7 +528,7 @@ function portalHeader({ account = null, active = '', compactSearch = true } = {}
         <span><b>GÊNESIS</b><small>Portal de vagas</small></span>
       </a>
       ${compactSearch ? `<form class="directory-header-search" action="${searchAction}" method="get"><input type="search" name="q" placeholder="${escapeHtml(searchPlaceholder)}" aria-label="Buscar"><button type="submit" aria-label="Buscar">⌕</button></form>` : ''}
-      <div class="directory-header-actions"><a class="directory-link" href="${accountHref}">${escapeHtml(accountLabel)}</a><button class="directory-theme-button" type="button" data-theme-toggle aria-label="Ativar modo escuro">Tema</button><a class="directory-submit" href="/portal-para-empresas">Para empresas</a><button class="directory-menu-button" type="button" data-menu-toggle aria-label="Abrir menu" aria-expanded="false">Menu</button></div>
+      <div class="directory-header-actions"><a class="directory-link" href="${accountHref}">${escapeHtml(accountLabel)}</a><button class="directory-theme-button" type="button" role="switch" aria-checked="false" data-theme-toggle aria-label="Ativar modo escuro"><span class="portal-theme-track" aria-hidden="true"><i class="portal-theme-sun">☀</i><i class="portal-theme-thumb"></i><i class="portal-theme-moon">☾</i></span></button><a class="directory-submit" href="/portal-para-empresas">Para empresas</a><button class="directory-menu-button" type="button" data-menu-toggle aria-label="Abrir menu" aria-expanded="false">☰</button></div>
     </div>
     <nav class="directory-nav" aria-label="Navegação do portal"><div class="directory-container">
       <a class="${active === 'vagas' ? 'active' : ''}" href="/vagas">Vagas</a>
@@ -533,7 +538,7 @@ function portalHeader({ account = null, active = '', compactSearch = true } = {}
       <a href="/grupos/categoria/networking">Networking</a>
       <a href="/cadastro">Publicar gratuitamente</a>
     </div></nav>
-    <div class="mobile-menu directory-mobile-menu" data-mobile-menu><nav class="directory-container"><a href="/grupos">Grupos</a><a href="/vagas">Vagas</a><a href="/empresas">Empresas</a><a href="/portal-para-empresas">Portal para empresas</a><a href="/grupos/categoria/free-lances">Free lances</a><a href="/cadastro">Criar conta</a><a href="/entrar">Entrar</a><a href="/anunciar-vaga">Para empresas</a><button class="directory-mobile-theme" type="button" data-theme-toggle aria-label="Ativar modo escuro">Alternar tema</button></nav></div>
+    <div class="mobile-menu directory-mobile-menu" data-mobile-menu><nav class="directory-container"><a href="/grupos">Grupos</a><a href="/vagas">Vagas</a><a href="/empresas">Empresas</a><a href="/portal-para-empresas">Portal para empresas</a><a href="/grupos/categoria/free-lances">Free lances</a><a href="/cadastro">Criar conta</a><a href="/entrar">Entrar</a><a href="/anunciar-vaga">Para empresas</a><button class="directory-mobile-theme" type="button" role="switch" aria-checked="false" data-theme-toggle aria-label="Ativar modo escuro"><span>Modo escuro</span><span class="portal-theme-track" aria-hidden="true"><i class="portal-theme-sun">☀</i><i class="portal-theme-thumb"></i><i class="portal-theme-moon">☾</i></span></button></nav></div>
   </header><button class="menu-backdrop" data-menu-backdrop type="button" aria-label="Fechar menu"></button>`;
 }
 
@@ -785,7 +790,7 @@ function vacancyCard(vacancy) {
   const gainsText = gains.total > 0 ? formatMoney(gains.total) : '';
   return `<a class="job-card" href="/vagas/${escapeHtml(vacancySlug(vacancy))}" data-track="ABRIR_VAGA" data-track-label="${escapeHtml(vacancy.titulo)}">
     <div class="job-card-image">
-      <img src="${escapeHtml(imageForVacancy(vacancy))}" alt="" loading="lazy" width="270" height="220">
+      ${vacancyImage(vacancy)}
       ${vacancy.destaque_portal ? '<span class="job-badge">Destaque</span>' : ''}
     </div>
     <div>
@@ -821,10 +826,10 @@ async function vacanciesPage(req, res, next) {
     } catch (error) {
       if (String(process.env.VISUAL_PREVIEW || '').toLowerCase() !== 'true') throw error;
       const previewVacancies = [
-        { id: 101, codigo: 'GEN-101', titulo: 'Auxiliar de Limpeza', cargo: 'Auxiliar de Limpeza', empresa_nome: 'Empresa parceira', bairro: 'Mooca', cidade: 'São Paulo', estado: 'SP', modalidade: 'Presencial', escala: '6x1', salario: 1920, destaque_portal: true, aceita_sem_experiencia: true, imagem_capa_url: '/assets/brand/genesis-symbol.webp' },
-        { id: 102, codigo: 'GEN-102', titulo: 'Porteiro', cargo: 'Porteiro', empresa_nome: 'Empresa parceira', bairro: 'Santo Amaro', cidade: 'São Paulo', estado: 'SP', modalidade: 'Presencial', escala: '12x36', salario: 2180, imagem_capa_url: '/assets/brand/genesis-symbol.webp' },
-        { id: 103, codigo: 'GEN-103', titulo: 'Recepcionista', cargo: 'Recepcionista', empresa_nome: 'Empresa parceira', bairro: 'Pinheiros', cidade: 'São Paulo', estado: 'SP', modalidade: 'Presencial', escala: 'Segunda a sexta', salario: 2300, imagem_capa_url: '/assets/brand/genesis-symbol.webp' },
-        { id: 104, codigo: 'GEN-104', titulo: 'Assistente Administrativo', cargo: 'Assistente Administrativo', empresa_nome: 'Empresa parceira', cidade: 'Guarulhos', estado: 'SP', modalidade: 'Híbrido', escala: 'Segunda a sexta', salario: 2800, imagem_capa_url: '/assets/brand/genesis-symbol.webp' },
+        { id: 101, codigo: 'GEN-101', titulo: 'Auxiliar de Limpeza', cargo: 'Auxiliar de Limpeza', empresa_nome: 'Empresa parceira', bairro: 'Mooca', cidade: 'São Paulo', estado: 'SP', modalidade: 'Presencial', escala: '6x1', salario: 1920, destaque_portal: true, aceita_sem_experiencia: true },
+        { id: 102, codigo: 'GEN-102', titulo: 'Porteiro', cargo: 'Porteiro', empresa_nome: 'Empresa parceira', bairro: 'Santo Amaro', cidade: 'São Paulo', estado: 'SP', modalidade: 'Presencial', escala: '12x36', salario: 2180 },
+        { id: 103, codigo: 'GEN-103', titulo: 'Recepcionista', cargo: 'Recepcionista', empresa_nome: 'Empresa parceira', bairro: 'Pinheiros', cidade: 'São Paulo', estado: 'SP', modalidade: 'Presencial', escala: 'Segunda a sexta', salario: 2300 },
+        { id: 104, codigo: 'GEN-104', titulo: 'Assistente Administrativo', cargo: 'Assistente Administrativo', empresa_nome: 'Empresa parceira', cidade: 'Guarulhos', estado: 'SP', modalidade: 'Híbrido', escala: 'Segunda a sexta', salario: 2800 },
       ];
       result = { vacancies: previewVacancies, total: previewVacancies.length, cities: ['Guarulhos', 'São Paulo'] };
     }
@@ -1069,7 +1074,7 @@ async function vacancyDetailPage(req, res, next) {
     const title = vacancy.seo_titulo || `${vacancy.titulo} em ${vacancy.bairro || vacancy.cidade || vacancy.estado}`;
 
     const relatedHtml = related.length
-      ? related.map((item) => `<a class="related-card" href="/vagas/${escapeHtml(vacancySlug(item))}" data-track="VAGA_RELACIONADA"><h3>${escapeHtml(item.titulo)}</h3><p>${escapeHtml(locationText(item))} · ${escapeHtml(item.empresa_nome)}</p><span>Ver vaga →</span></a>`).join('')
+      ? related.map((item) => `<a class="related-card" href="/vagas/${escapeHtml(vacancySlug(item))}" data-track="VAGA_RELACIONADA"><span class="related-card-image">${vacancyImage(item)}</span><span class="related-card-copy"><h3>${escapeHtml(item.titulo)}</h3><p>${escapeHtml(locationText(item))} · ${escapeHtml(item.empresa_nome)}</p><b>Ver vaga →</b></span></a>`).join('')
       : '<p>Novas oportunidades serão exibidas aqui assim que forem publicadas.</p>';
 
     const groupButton = groupUrl
@@ -1082,7 +1087,8 @@ async function vacancyDetailPage(req, res, next) {
           <div class="container">
             <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Início</a><span>›</span><a href="/vagas">Vagas</a><span>›</span><span>${escapeHtml(vacancy.titulo)}</span></nav>
             <div class="job-title-grid">
-              <div><span class="eyebrow">Vaga aberta · Código ${escapeHtml(vacancy.codigo)}</span><h1>${escapeHtml(vacancy.titulo)}</h1><p>${escapeHtml(vacancy.empresa_nome)} · ${escapeHtml(locationText(vacancy))}</p></div>
+              <div class="job-detail-title-copy"><span class="eyebrow">Vaga aberta · Código ${escapeHtml(vacancy.codigo)}</span><h1>${escapeHtml(vacancy.titulo)}</h1><p>${escapeHtml(vacancy.empresa_nome)} · ${escapeHtml(locationText(vacancy))}</p></div>
+              <div class="job-detail-cover">${vacancyImage(vacancy)}</div>
               <a class="btn btn-accent btn-lg" href="${escapeHtml(application.url)}" target="${['whatsapp','whatsapp-external','external'].includes(application.type) ? '_blank' : '_self'}" rel="noopener" data-track="CTA_HERO_CANDIDATURA">${escapeHtml(application.label)}</a>
             </div>
           </div>
