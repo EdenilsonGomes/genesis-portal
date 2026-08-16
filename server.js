@@ -34,8 +34,8 @@ const SITE_URL = normalizeBaseUrl(process.env.SITE_URL || 'http://localhost:3000
 const PANEL_URL = normalizeBaseUrl(process.env.PANEL_URL || '');
 const BRAND_NAME_INPUT = String(process.env.BRAND_NAME || 'Gênesis').trim();
 const BRAND_NAME = /^(genesis|gênesis)\s*ia$/i.test(BRAND_NAME_INPUT) ? 'Gênesis' : BRAND_NAME_INPUT;
-const PORTAL_BRAND_NAME = String(process.env.PORTAL_BRAND_NAME || 'Vagas & Grupos').trim();
-const PORTAL_BRAND_TAGLINE = String(process.env.PORTAL_BRAND_TAGLINE || 'Emprego, carreira e networking').trim();
+const PORTAL_BRAND_NAME = String(process.env.PORTAL_BRAND_NAME || 'Gênesis Vagas').trim();
+const PORTAL_BRAND_TAGLINE = String(process.env.PORTAL_BRAND_TAGLINE || 'Pessoas, oportunidades e tecnologia').trim();
 const ASSET_VERSION = `${String(process.env.ASSET_VERSION || '1301').trim()}-${APP_VERSION}`;
 const ORGANIZATION_LEGAL_NAME = String(process.env.ORGANIZATION_LEGAL_NAME || BRAND_NAME).trim();
 const PRIVACY_EMAIL = String(process.env.PRIVACY_EMAIL || 'privacidade@genesisrecruta.com.br').trim();
@@ -329,7 +329,7 @@ function candidateApplication(vacancy) {
   }
   const number = digits(vacancy.whatsapp_candidatura || CANDIDATE_WHATSAPP_NUMBER);
   const message = [
-    'Olá! Vi esta oportunidade no Vagas & Grupos e quero me candidatar:',
+    'Olá! Vi esta oportunidade no Portal de Vagas Gênesis e quero me candidatar:',
     '',
     `${vacancy.titulo}`,
     `${locationText(vacancy)}`,
@@ -395,9 +395,9 @@ function upgradeLocationMarkup(html) {
     .replace(/<div class="form-alert success">/g, '<div class="form-alert success" role="status">');
 }
 
-function metaPage({ title, description, canonical, image, bodyClass = '', content, nonce, structuredData = [], robots = 'index,follow,max-image-preview:large', vacancyId = '', siteName = BRAND_NAME, titleSuffix = siteName, favicon = '/assets/genesis-mark.svg', themeColor = '#073642' }) {
+function metaPage({ title, description, canonical, image, bodyClass = '', content, nonce, structuredData = [], robots = 'index,follow,max-image-preview:large', vacancyId = '', siteName = BRAND_NAME, titleSuffix = siteName, favicon = '/assets/genesis-mark.svg', themeColor = '#0B1F2A' }) {
   const fullTitle = title.includes(titleSuffix) ? title : `${title} | ${titleSuffix}`;
-  const renderedContent = upgradeLocationMarkup(content);
+  const renderedContent = upgradeLocationMarkup(content).replaceAll('Vagas & Grupos', PORTAL_BRAND_NAME);
   const shareImage = String(image || '').replace(/(genesis-social|vagas-grupos-social|og-default)\.svg(?:\?.*)?$/i, '$1.png');
   const schemas = structuredData.map((schema) => (
     `<script nonce="${escapeHtml(nonce)}" type="application/ld+json">${jsonForHtml(schema)}</script>`
@@ -423,10 +423,11 @@ function metaPage({ title, description, canonical, image, bodyClass = '', conten
   <meta name="twitter:title" content="${escapeHtml(fullTitle)}">
   <meta name="twitter:description" content="${escapeHtml(description)}">
   <meta name="twitter:image" content="${escapeHtml(shareImage)}">
-  <link rel="icon" href="${escapeHtml(favicon)}" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico?v=${escapeHtml(ASSET_VERSION)}" sizes="any">
   <meta name="theme-color" content="${escapeHtml(themeColor)}">
   <script src="/theme-init.js?v=${escapeHtml(ASSET_VERSION)}"></script>
   <link rel="stylesheet" href="/portal.css?v=${escapeHtml(ASSET_VERSION)}">
+  <link rel="stylesheet" href="/genesis-rebrand.css?v=${escapeHtml(ASSET_VERSION)}">
   ${schemas}
 </head>
 <body class="${escapeHtml(bodyClass)}">
@@ -443,8 +444,8 @@ function header({ account = null, accountAction = '' } = {}) {
   return `<header class="site-header">
     <div class="container header-inner">
       <a class="brand" href="/" aria-label="Página inicial da ${escapeHtml(BRAND_NAME)}">
-        <img src="/assets/genesis-mark.svg" alt="" width="42" height="42">
-        <span>${escapeHtml(BRAND_NAME)}<small>Recrutamento conversacional</small></span>
+        <img src="/assets/brand/genesis-symbol.webp?v=${escapeHtml(ASSET_VERSION)}" alt="" width="42" height="42">
+        <span>${escapeHtml(BRAND_NAME)}<small>Pessoas · Oportunidades · Tecnologia</small></span>
       </a>
       <nav class="nav" aria-label="Navegação principal">
         <a href="/#solucoes">Soluções</a>
@@ -453,10 +454,10 @@ function header({ account = null, accountAction = '' } = {}) {
         <a href="/anunciar-vaga">Para empresas</a>
       </nav>
       <div class="header-actions">
-        <button class="header-icon theme-toggle" type="button" data-theme-toggle aria-label="Ativar modo escuro" title="Alternar tema"><span aria-hidden="true">☾</span></button>
+        <button class="header-icon theme-toggle" type="button" data-theme-toggle aria-label="Ativar modo escuro" title="Alternar tema"><span aria-hidden="true">Tema</span></button>
         ${publicAccountAction}
-        <a class="btn btn-primary header-login" href="/anunciar-vaga" data-track="CTA_HEADER_DEMO">Solicitar demonstração</a>
-        <button class="header-icon menu-toggle" type="button" data-menu-toggle aria-label="Abrir menu" aria-expanded="false">☰</button>
+        <a class="btn btn-primary header-login" href="/anunciar-vaga" data-track="CTA_HEADER_DEMO">Para empresas</a>
+        <button class="header-icon menu-toggle" type="button" data-menu-toggle aria-label="Abrir menu" aria-expanded="false">Menu</button>
       </div>
     </div>
     <div class="mobile-menu" data-mobile-menu>
@@ -474,7 +475,7 @@ function footer() {
     <div class="container footer-grid">
       <div>
         <a class="brand" href="/">
-          <img src="/assets/genesis-mark.svg" alt="" width="42" height="42">
+          <img src="/assets/brand/genesis-symbol.webp?v=${escapeHtml(ASSET_VERSION)}" alt="" width="42" height="42">
           <span>${escapeHtml(BRAND_NAME)}<small>Recrutamento conversacional</small></span>
         </a>
         <p class="footer-copy">Aquisição, conversa, qualificação e agenda em um fluxo simples para sua equipe acompanhar.</p>
@@ -500,11 +501,11 @@ function footer() {
     <div class="container footer-bottom"><span>© ${year} ${escapeHtml(BRAND_NAME)}. Todos os direitos reservados.</span><nav aria-label="Informações legais"><a href="/privacidade">Privacidade</a><a href="/termos">Termos de uso</a><a href="/exclusao-de-dados">Exclusão de dados</a><a href="/seguranca">Segurança</a></nav></div>
   </footer>
   <nav class="portal-bottom-nav" aria-label="Navegação rápida">
-    <a href="/" data-nav-path="/"><span>⌂</span><b>Início</b></a>
-    <a href="/vagas" data-nav-path="/vagas"><span>▣</span><b>Vagas</b></a>
-    <a href="/grupos" data-nav-path="/grupos"><span>◉</span><b>Grupos</b></a>
-    <a href="/cadastro" data-nav-path="/cadastro"><span>＋</span><b>Publicar</b></a>
-    <a href="/entrar" data-nav-path="/entrar"><span>♙</span><b>Conta</b></a>
+    <a href="/" data-nav-path="/"><b>Início</b></a>
+    <a href="/vagas" data-nav-path="/vagas"><b>Vagas</b></a>
+    <a href="/grupos" data-nav-path="/grupos"><b>Grupos</b></a>
+    <a href="/cadastro" data-nav-path="/cadastro"><b>Publicar</b></a>
+    <a href="/entrar" data-nav-path="/entrar"><b>Conta</b></a>
   </nav>`;
 }
 
@@ -515,36 +516,36 @@ function portalHeader({ account = null, active = '', compactSearch = true } = {}
   const searchAction = active === 'vagas' ? '/vagas' : '/grupos';
   const searchPlaceholder = active === 'vagas' ? 'Cargo, empresa ou cidade' : 'Nome do grupo, profissão ou cidade';
   return `<header class="directory-header">
-    <div class="directory-utility"><div class="directory-container utility-inner"><span>Vagas e comunidades por estado, cidade e profissão</span><a href="/portal-para-empresas">Sua empresa está contratando? Crie um portal de carreiras grátis →</a></div></div>
+    <div class="directory-utility"><div class="directory-container utility-inner"><span>Oportunidades conectadas pela Gênesis</span><a href="/portal-para-empresas">Sua empresa está contratando? Publique suas vagas →</a></div></div>
     <div class="directory-container directory-header-main">
-      <a class="directory-brand" href="/grupos" aria-label="Página inicial do ${escapeHtml(PORTAL_BRAND_NAME)}">
-        <img src="/assets/vagas-grupos-mark.svg" alt="" width="50" height="50">
-        <span><b>${escapeHtml(PORTAL_BRAND_NAME)}</b><small>${escapeHtml(PORTAL_BRAND_TAGLINE)}</small></span>
+      <a class="directory-brand" href="/" aria-label="Página inicial da Gênesis">
+          <img src="/assets/brand/genesis-symbol.webp?v=${escapeHtml(ASSET_VERSION)}" alt="" width="50" height="50">
+        <span><b>GÊNESIS</b><small>Portal de vagas</small></span>
       </a>
       ${compactSearch ? `<form class="directory-header-search" action="${searchAction}" method="get"><input type="search" name="q" placeholder="${escapeHtml(searchPlaceholder)}" aria-label="Buscar"><button type="submit" aria-label="Buscar">⌕</button></form>` : ''}
-      <div class="directory-header-actions"><a class="directory-link" href="${accountHref}">${escapeHtml(accountLabel)}</a><a class="directory-submit" href="${account ? '/minha-conta/grupos/novo' : '/cadastro'}">+ Cadastrar grupo</a><button class="directory-menu-button" type="button" data-menu-toggle aria-label="Abrir menu" aria-expanded="false">☰</button></div>
+      <div class="directory-header-actions"><a class="directory-link" href="${accountHref}">${escapeHtml(accountLabel)}</a><button class="directory-theme-button" type="button" data-theme-toggle aria-label="Ativar modo escuro">Tema</button><a class="directory-submit" href="/portal-para-empresas">Para empresas</a><button class="directory-menu-button" type="button" data-menu-toggle aria-label="Abrir menu" aria-expanded="false">Menu</button></div>
     </div>
     <nav class="directory-nav" aria-label="Navegação do portal"><div class="directory-container">
-      <a class="${active === 'grupos' ? 'active' : ''}" href="/grupos">Grupos</a>
       <a class="${active === 'vagas' ? 'active' : ''}" href="/vagas">Vagas</a>
+      <a class="${active === 'grupos' ? 'active' : ''}" href="/grupos">Grupos</a>
       <a class="${active === 'empresas' ? 'active' : ''}" href="/empresas">Empresas</a>
       <a href="/grupos/categoria/free-lances">Free lances</a>
       <a href="/grupos/categoria/networking">Networking</a>
       <a href="/cadastro">Publicar gratuitamente</a>
     </div></nav>
-    <div class="mobile-menu directory-mobile-menu" data-mobile-menu><nav class="directory-container"><a href="/grupos">Grupos</a><a href="/vagas">Vagas</a><a href="/empresas">Empresas</a><a href="/portal-para-empresas">Portal para empresas</a><a href="/grupos/categoria/free-lances">Free lances</a><a href="/cadastro">Criar conta</a><a href="/entrar">Entrar</a><a href="/anunciar-vaga">Para empresas</a></nav></div>
+    <div class="mobile-menu directory-mobile-menu" data-mobile-menu><nav class="directory-container"><a href="/grupos">Grupos</a><a href="/vagas">Vagas</a><a href="/empresas">Empresas</a><a href="/portal-para-empresas">Portal para empresas</a><a href="/grupos/categoria/free-lances">Free lances</a><a href="/cadastro">Criar conta</a><a href="/entrar">Entrar</a><a href="/anunciar-vaga">Para empresas</a><button class="directory-mobile-theme" type="button" data-theme-toggle aria-label="Ativar modo escuro">Alternar tema</button></nav></div>
   </header><button class="menu-backdrop" data-menu-backdrop type="button" aria-label="Fechar menu"></button>`;
 }
 
 function portalFooter() {
   const year = new Date().getFullYear();
   return `<footer class="directory-footer"><div class="directory-container directory-footer-grid">
-    <div><a class="directory-brand footer-brand" href="/grupos"><img src="/assets/vagas-grupos-mark.svg" alt="" width="46" height="46"><span><b>${escapeHtml(PORTAL_BRAND_NAME)}</b><small>${escapeHtml(PORTAL_BRAND_TAGLINE)}</small></span></a><p>Oportunidades e comunidades profissionais organizadas para você encontrar o próximo passo sem enrolação.</p><span class="powered-by">Uma iniciativa da <a href="/">Gênesis</a></span></div>
-    <div><h4>Explorar</h4><a href="/grupos">Grupos de emprego</a><a href="/vagas">Vagas abertas</a><a href="/grupos/categoria/networking">Networking</a></div>
+    <div><a class="directory-brand footer-brand" href="/"><img src="/assets/brand/genesis-symbol.webp?v=${escapeHtml(ASSET_VERSION)}" alt="" width="46" height="46"><span><b>GÊNESIS</b><small>Pessoas · Oportunidades · Tecnologia</small></span></a><p>Vagas claras, comunidades úteis e uma candidatura direta para aproximar pessoas e oportunidades.</p></div>
+    <div><h4>Explorar</h4><a href="/vagas">Vagas abertas</a><a href="/grupos">Grupos de emprego</a><a href="/grupos/categoria/networking">Networking</a></div>
     <div><h4>Publicar</h4><a href="/portal-para-empresas">Criar portal da empresa</a><a href="/cadastro">Criar conta gratuita</a><a href="/minha-conta/grupos/novo">Cadastrar grupo</a><a href="/minha-conta/vagas/nova">Enviar vaga</a></div>
     <div><h4>Ajuda e segurança</h4><a href="/seguranca">Evite golpes</a><a href="/privacidade">Privacidade</a><a href="/termos">Termos de uso</a><a href="/exclusao-de-dados">Exclusão de dados</a><a href="/anunciar-vaga">Para empresas</a></div>
-  </div><div class="directory-container directory-footer-bottom"><span>© ${year} ${escapeHtml(PORTAL_BRAND_NAME)}</span><span>Conteúdo publicado por usuários e revisado pela equipe.</span></div></footer>
-  <nav class="portal-bottom-nav directory-bottom-nav" aria-label="Navegação rápida"><a href="/grupos" data-nav-path="/grupos"><span>◉</span><b>Grupos</b></a><a href="/vagas" data-nav-path="/vagas"><span>▣</span><b>Vagas</b></a><a href="/cadastro" data-nav-path="/cadastro"><span>＋</span><b>Publicar</b></a><a href="/entrar" data-nav-path="/entrar"><span>♙</span><b>Conta</b></a></nav>`;
+  </div><div class="directory-container directory-footer-bottom"><span>© ${year} Gênesis</span><span>Conteúdo publicado por usuários e revisado pela equipe.</span></div></footer>
+  <nav class="portal-bottom-nav directory-bottom-nav" aria-label="Navegação rápida"><a href="/vagas" data-nav-path="/vagas"><b>Vagas</b></a><a href="/grupos" data-nav-path="/grupos"><b>Grupos</b></a><a href="/cadastro" data-nav-path="/cadastro"><b>Publicar</b></a><a href="/entrar" data-nav-path="/entrar"><b>Conta</b></a></nav>`;
 }
 
 function portalOrganizationSchema() {
@@ -676,7 +677,7 @@ function landingPage(req, res) {
           <a class="btn btn-primary btn-lg" href="/anunciar-vaga" data-track="CTA_EMPRESA_FORM">Quero contratar com a Gênesis</a>
         </article>
         <article class="candidate-panel">
-          <span class="panel-kicker">Para candidatos e publicadores</span><h3>Oportunidades claras. Comunidades úteis.</h3><p>No Vagas & Grupos, candidatos encontram caminhos diretos e publicadores acompanham conteúdos enviados para revisão.</p>
+          <span class="panel-kicker">Para candidatos e publicadores</span><h3>Oportunidades claras. Comunidades úteis.</h3><p>No Portal de Vagas Gênesis, candidatos encontram caminhos diretos e publicadores acompanham conteúdos enviados para revisão.</p>
           <div class="hero-actions"><a class="btn btn-accent btn-lg" href="/vagas">Ver oportunidades</a><a class="btn btn-ghost btn-lg" href="/cadastro">Publicar grátis</a></div>
         </article>
       </div>
@@ -791,9 +792,9 @@ function vacancyCard(vacancy) {
       <h3>${escapeHtml(vacancy.titulo || vacancy.cargo)}</h3>
       <p class="job-company">${escapeHtml(vacancy.empresa_nome)}</p>
       <div class="job-meta">
-        <span class="meta-chip">📍 ${escapeHtml(locationText(vacancy))}</span>
-        ${vacancy.modalidade ? `<span class="meta-chip">◉ ${escapeHtml(vacancy.modalidade)}</span>` : ''}
-        ${vacancy.escala ? `<span class="meta-chip">◷ ${escapeHtml(vacancy.escala)}</span>` : ''}
+        <span class="meta-chip"><b>Local</b> ${escapeHtml(locationText(vacancy))}</span>
+        ${vacancy.modalidade ? `<span class="meta-chip"><b>Modalidade</b> ${escapeHtml(vacancy.modalidade)}</span>` : ''}
+        ${vacancy.escala ? `<span class="meta-chip"><b>Escala</b> ${escapeHtml(vacancy.escala)}</span>` : ''}
         ${vacancy.aceita_sem_experiencia ? '<span class="meta-chip">Sem experiência</span>' : ''}
       </div>
     </div>
@@ -807,13 +808,26 @@ function vacancyCard(vacancy) {
 
 async function vacanciesPage(req, res, next) {
   try {
+    const isHome = req.path === '/';
     const query = String(req.query.q || '').trim().slice(0, 120);
     const state = String(req.query.estado || '').trim().slice(0, 2).toUpperCase();
     const city = String(req.query.cidade || '').trim().slice(0, 120);
     const modality = String(req.query.modalidade || '').trim().slice(0, 50);
     const page = Math.max(1, Number.parseInt(req.query.pagina, 10) || 1);
-    const pageSize = 12;
-    const result = await listVacancies({ query, state, city, modality, page, pageSize });
+    const pageSize = isHome ? 8 : 12;
+    let result;
+    try {
+      result = await listVacancies({ query, state, city, modality, page, pageSize });
+    } catch (error) {
+      if (String(process.env.VISUAL_PREVIEW || '').toLowerCase() !== 'true') throw error;
+      const previewVacancies = [
+        { id: 101, codigo: 'GEN-101', titulo: 'Auxiliar de Limpeza', cargo: 'Auxiliar de Limpeza', empresa_nome: 'Empresa parceira', bairro: 'Mooca', cidade: 'São Paulo', estado: 'SP', modalidade: 'Presencial', escala: '6x1', salario: 1920, destaque_portal: true, aceita_sem_experiencia: true, imagem_capa_url: '/assets/brand/genesis-symbol.webp' },
+        { id: 102, codigo: 'GEN-102', titulo: 'Porteiro', cargo: 'Porteiro', empresa_nome: 'Empresa parceira', bairro: 'Santo Amaro', cidade: 'São Paulo', estado: 'SP', modalidade: 'Presencial', escala: '12x36', salario: 2180, imagem_capa_url: '/assets/brand/genesis-symbol.webp' },
+        { id: 103, codigo: 'GEN-103', titulo: 'Recepcionista', cargo: 'Recepcionista', empresa_nome: 'Empresa parceira', bairro: 'Pinheiros', cidade: 'São Paulo', estado: 'SP', modalidade: 'Presencial', escala: 'Segunda a sexta', salario: 2300, imagem_capa_url: '/assets/brand/genesis-symbol.webp' },
+        { id: 104, codigo: 'GEN-104', titulo: 'Assistente Administrativo', cargo: 'Assistente Administrativo', empresa_nome: 'Empresa parceira', cidade: 'Guarulhos', estado: 'SP', modalidade: 'Híbrido', escala: 'Segunda a sexta', salario: 2800, imagem_capa_url: '/assets/brand/genesis-symbol.webp' },
+      ];
+      result = { vacancies: previewVacancies, total: previewVacancies.length, cities: ['Guarulhos', 'São Paulo'] };
+    }
     const totalPages = Math.max(1, Math.ceil(result.total / pageSize));
     const safePage = Math.min(page, totalPages);
 
@@ -852,9 +866,9 @@ async function vacanciesPage(req, res, next) {
       <main id="conteudo" class="directory-main">
         <section class="portal-hero directory-page-hero">
           <div class="container">
-            <span class="eyebrow">Oportunidades atualizadas</span>
-            <h1>Seu próximo trabalho pode começar aqui.</h1>
-            <p>Pesquise por cargo ou local, veja todos os detalhes e inicie a candidatura pelo WhatsApp sem preencher cadastros intermináveis.</p>
+            <span class="eyebrow">${isHome ? 'Portal de vagas Gênesis' : 'Oportunidades atualizadas'}</span>
+            <h1>${isHome ? 'Encontre uma vaga que combine com você.' : 'Seu próximo trabalho pode começar aqui.'}</h1>
+            <p>Pesquise por cargo ou local, compare as informações importantes e inicie sua candidatura sem cadastros intermináveis.</p>
             <form class="search-shell" action="/vagas" method="get" data-search-form>
               <input type="search" name="q" value="${escapeHtml(query)}" placeholder="Cargo, bairro ou empresa" aria-label="Pesquisar vagas">
               <select name="estado" aria-label="Filtrar por estado" data-location-state>
@@ -881,27 +895,28 @@ async function vacanciesPage(req, res, next) {
             </aside>
           </div>
         </section>
+        ${isHome ? `<section class="home-company-cta"><div class="container"><div><span>PARA EMPRESAS</span><h2>Precisa contratar?</h2><p>Publique suas vagas e organize a jornada dos candidatos com a Gênesis.</p></div><a class="btn btn-primary" href="/portal-para-empresas">Conheça as soluções para empresas</a></div></section>` : ''}
       </main>
       ${portalFooter()}`;
 
     return res.send(metaPage({
-      title: query ? `Vagas para ${query}` : 'Vagas de emprego',
-      description: 'Encontre vagas abertas, confira salário, horário, benefícios e fale diretamente pelo WhatsApp para iniciar sua candidatura.',
-      canonical: `${SITE_URL}/vagas`,
+      title: query ? `Vagas para ${query}` : (isHome ? 'Vagas de emprego' : 'Todas as vagas'),
+      description: 'Encontre vagas abertas, confira salário, horário, benefícios e inicie sua candidatura de forma rápida e segura.',
+      canonical: isHome ? SITE_URL : `${SITE_URL}/vagas`,
       image: `${SITE_URL}/assets/vagas-grupos-social.png`,
-      bodyClass: 'light-page directory-site',
+      bodyClass: `light-page directory-site${isHome ? ' home-jobs-page' : ''}`,
       robots: (query || state || city || modality || safePage > 1) ? 'noindex,follow' : 'index,follow,max-image-preview:large',
       content,
       nonce: res.locals.cspNonce,
       siteName: PORTAL_BRAND_NAME,
       titleSuffix: PORTAL_BRAND_NAME,
       favicon: '/assets/vagas-grupos-mark.svg',
-      themeColor: '#19ad5b',
+      themeColor: '#0B1F2A',
       structuredData: [portalOrganizationSchema(), {
         '@context': 'https://schema.org',
         '@type': 'CollectionPage',
-        name: `Vagas de emprego | ${PORTAL_BRAND_NAME}`,
-        url: `${SITE_URL}/vagas`,
+        name: `Vagas de emprego | Gênesis`,
+        url: isHome ? SITE_URL : `${SITE_URL}/vagas`,
       }],
     }));
   } catch (error) {
@@ -1129,7 +1144,7 @@ async function vacancyDetailPage(req, res, next) {
       siteName: PORTAL_BRAND_NAME,
       titleSuffix: PORTAL_BRAND_NAME,
       favicon: '/assets/vagas-grupos-mark.svg',
-      themeColor: '#19ad5b',
+      themeColor: '#0B1F2A',
       structuredData: [
         portalOrganizationSchema(),
         jobPostingSchema(vacancy, application),
@@ -1270,7 +1285,7 @@ function expiredPage(vacancy, res) {
     siteName: PORTAL_BRAND_NAME,
     titleSuffix: PORTAL_BRAND_NAME,
     favicon: '/assets/vagas-grupos-mark.svg',
-    themeColor: '#19ad5b',
+    themeColor: '#0B1F2A',
     structuredData: [portalOrganizationSchema()],
   });
 }
@@ -1288,7 +1303,7 @@ function notFoundPage(res) {
     siteName: PORTAL_BRAND_NAME,
     titleSuffix: PORTAL_BRAND_NAME,
     favicon: '/assets/vagas-grupos-mark.svg',
-    themeColor: '#19ad5b',
+    themeColor: '#0B1F2A',
     structuredData: [portalOrganizationSchema()],
   });
 }
@@ -1374,7 +1389,7 @@ app.get('/health', async (_req, res) => {
 
 registerDivulgacaoTracking({ app, pool, vacancyUrl, analyticsSecret: PORTAL_ANALYTICS_SECRET });
 
-app.get('/', landingPage);
+app.get('/', vacanciesPage);
 app.get('/vagas', vacanciesPage);
 app.get('/vagas/:slug', vacancyDetailPage);
 app.get('/anunciar-vaga', (req, res) => res.send(companyLeadPage(req, res)));
