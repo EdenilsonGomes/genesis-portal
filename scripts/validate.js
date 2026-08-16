@@ -12,6 +12,7 @@ function checkSyntax(file) {
 ['server.js','community.js','company-portals.js','lib/brazil-locations.js','public/portal.js','public/theme-init.js','scripts/test-community-flows.js','scripts/test-company-portals-v1.js','scripts/migrate-company-portals-v1.js','scripts/preflight-company-portals-v1.js'].forEach(checkSyntax);
 const server = read('server.js');
 ['data-theme-toggle','data-menu-toggle','portal-bottom-nav','JobPosting','sitemap.xml'].forEach((token) => assert(server.includes(token), `Recurso obrigatório ausente: ${token}`));
+['/privacidade','/termos','/exclusao-de-dados','PRIVACY_EMAIL','Meta, Facebook e WhatsApp'].forEach((token) => assert(server.includes(token), `Página legal incompleta: ${token}`));
 ['13.1.0','upgradeLocationMarkup','grupo-oficial','recrutamento conversacional','registerCompanyPortalRoutes','sitemap-empresas.xml'].forEach((token) => assert(server.includes(token), `Recurso V13 ausente: ${token}`));
 const css = read('public/portal.css');
 ['html[data-theme="dark"]','portal-bottom-nav','mobile-menu','sticky-mobile-cta'].forEach((token) => assert(css.includes(token), `CSS incompleto: ${token}`));
@@ -41,3 +42,4 @@ assert(read('scripts/migrate-communities.js').includes("legacyDefaults: 'ok'"), 
   'BRAND_GUIDE.md',
 ].forEach((file) => assert(fs.existsSync(path.join(root, file)), `Ativo de marca ausente: ${file}`));
 console.log('Validação do portal concluída com sucesso.');
+

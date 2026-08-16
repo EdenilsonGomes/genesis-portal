@@ -38,6 +38,7 @@ const PORTAL_BRAND_NAME = String(process.env.PORTAL_BRAND_NAME || 'Vagas & Grupo
 const PORTAL_BRAND_TAGLINE = String(process.env.PORTAL_BRAND_TAGLINE || 'Emprego, carreira e networking').trim();
 const ASSET_VERSION = `${String(process.env.ASSET_VERSION || '1301').trim()}-${APP_VERSION}`;
 const ORGANIZATION_LEGAL_NAME = String(process.env.ORGANIZATION_LEGAL_NAME || BRAND_NAME).trim();
+const PRIVACY_EMAIL = String(process.env.PRIVACY_EMAIL || 'privacidade@genesisrecruta.com.br').trim();
 const ORGANIZATION_LOGO_URL = String(
   process.env.ORGANIZATION_LOGO_URL || `${SITE_URL}/assets/genesis-mark.svg`,
 ).trim();
@@ -496,7 +497,7 @@ function footer() {
         <a href="${escapeHtml(panelLoginUrl)}">Painel do cliente</a>
       </div>
     </div>
-    <div class="container footer-bottom"><span>© ${year} ${escapeHtml(BRAND_NAME)}. Todos os direitos reservados.</span><nav aria-label="Informações legais"><a href="/privacidade">Privacidade</a><a href="/termos">Termos de uso</a><a href="/seguranca">Segurança</a></nav></div>
+    <div class="container footer-bottom"><span>© ${year} ${escapeHtml(BRAND_NAME)}. Todos os direitos reservados.</span><nav aria-label="Informações legais"><a href="/privacidade">Privacidade</a><a href="/termos">Termos de uso</a><a href="/exclusao-de-dados">Exclusão de dados</a><a href="/seguranca">Segurança</a></nav></div>
   </footer>
   <nav class="portal-bottom-nav" aria-label="Navegação rápida">
     <a href="/" data-nav-path="/"><span>⌂</span><b>Início</b></a>
@@ -541,7 +542,7 @@ function portalFooter() {
     <div><a class="directory-brand footer-brand" href="/grupos"><img src="/assets/vagas-grupos-mark.svg" alt="" width="46" height="46"><span><b>${escapeHtml(PORTAL_BRAND_NAME)}</b><small>${escapeHtml(PORTAL_BRAND_TAGLINE)}</small></span></a><p>Oportunidades e comunidades profissionais organizadas para você encontrar o próximo passo sem enrolação.</p><span class="powered-by">Uma iniciativa da <a href="/">Gênesis</a></span></div>
     <div><h4>Explorar</h4><a href="/grupos">Grupos de emprego</a><a href="/vagas">Vagas abertas</a><a href="/grupos/categoria/networking">Networking</a></div>
     <div><h4>Publicar</h4><a href="/portal-para-empresas">Criar portal da empresa</a><a href="/cadastro">Criar conta gratuita</a><a href="/minha-conta/grupos/novo">Cadastrar grupo</a><a href="/minha-conta/vagas/nova">Enviar vaga</a></div>
-    <div><h4>Ajuda e segurança</h4><a href="/seguranca">Evite golpes</a><a href="/privacidade">Privacidade</a><a href="/termos">Termos de uso</a><a href="/anunciar-vaga">Para empresas</a></div>
+    <div><h4>Ajuda e segurança</h4><a href="/seguranca">Evite golpes</a><a href="/privacidade">Privacidade</a><a href="/termos">Termos de uso</a><a href="/exclusao-de-dados">Exclusão de dados</a><a href="/anunciar-vaga">Para empresas</a></div>
   </div><div class="directory-container directory-footer-bottom"><span>© ${year} ${escapeHtml(PORTAL_BRAND_NAME)}</span><span>Conteúdo publicado por usuários e revisado pela equipe.</span></div></footer>
   <nav class="portal-bottom-nav directory-bottom-nav" aria-label="Navegação rápida"><a href="/grupos" data-nav-path="/grupos"><span>◉</span><b>Grupos</b></a><a href="/vagas" data-nav-path="/vagas"><span>▣</span><b>Vagas</b></a><a href="/cadastro" data-nav-path="/cadastro"><span>＋</span><b>Publicar</b></a><a href="/entrar" data-nav-path="/entrar"><span>♙</span><b>Conta</b></a></nav>`;
 }
@@ -561,8 +562,8 @@ function portalOrganizationSchema() {
 }
 
 
-function institutionalPage({ title, description, sections, canonicalPath }) {
-  const content = `${header()}<main id="conteudo" class="legal-main"><section class="legal-hero"><div class="container"><span class="eyebrow">Transparência Gênesis</span><h1>${escapeHtml(title)}</h1><p>${escapeHtml(description)}</p></div></section><section class="container legal-content">${sections.map((section) => `<article><h2>${escapeHtml(section.title)}</h2>${section.paragraphs.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}</article>`).join('')}</section></main>${footer()}`;
+function institutionalPage({ title, description, sections, canonicalPath, updatedAt = '15 de agosto de 2026' }) {
+  const content = `${header()}<main id="conteudo" class="legal-main"><section class="legal-hero"><div class="container"><span class="eyebrow">Transparência Gênesis</span><h1>${escapeHtml(title)}</h1><p>${escapeHtml(description)}</p><p class="legal-updated">Última atualização: ${escapeHtml(updatedAt)}</p></div></section><section class="container legal-content">${sections.map((section) => `<article><h2>${escapeHtml(section.title)}</h2>${(section.paragraphs || []).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}${section.items?.length ? `<ul>${section.items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` : ''}</article>`).join('')}</section><section class="container legal-contact"><h2>Contato sobre privacidade</h2><p>Para exercer direitos, esclarecer dúvidas ou solicitar a exclusão de dados, escreva para <a href="mailto:${escapeHtml(PRIVACY_EMAIL)}">${escapeHtml(PRIVACY_EMAIL)}</a>. Para sua proteção, poderemos pedir informações suficientes para confirmar sua identidade.</p></section></main>${footer()}`;
   return metaPage({
     title,
     description,
@@ -1517,13 +1518,20 @@ app.get('/api/public/vagas', async (req, res, next) => {
 app.get('/privacidade', (_req, res) => {
   res.send(institutionalPage({
     title: 'Política de privacidade',
-    description: 'Entenda como a Gênesis utiliza os dados enviados no portal.',
+    description: 'Saiba quais dados a Gênesis trata, por que os utiliza e como exercer seus direitos de privacidade.',
     canonicalPath: '/privacidade',
     sections: [
-      { title: 'Dados tratados', paragraphs: ['Utilizamos os dados informados por recrutadores e empresas para criar contas, analisar publicações, manter a segurança do portal e responder solicitações. Os dados de candidatos continuam sendo tratados nos fluxos próprios de candidatura e recrutamento.'] },
-      { title: 'Finalidades', paragraphs: ['Os dados são usados para autenticação, moderação de grupos e vagas, métricas operacionais, prevenção de abuso e contato comercial quando autorizado. Não vendemos cadastros de candidatos ou publicadores.'] },
-      { title: 'Compartilhamento e retenção', paragraphs: ['Compartilhamos dados somente com prestadores necessários à operação, quando aplicável, e com autoridades quando houver obrigação legal. Mantemos os registros pelo período necessário para operar, proteger e comprovar as atividades do portal.'] },
-      { title: 'Seus direitos', paragraphs: ['Você pode solicitar correção, acesso ou exclusão dos dados da conta pelos canais de contato da Gênesis. Solicitações podem exigir confirmação de identidade para evitar acesso indevido.'] },
+      { title: 'Quem controla os dados', paragraphs: [`A ${ORGANIZATION_LEGAL_NAME}, responsável pelo portal Gênesis Recruta, atua como controladora dos dados pessoais descritos nesta política. Esta política se aplica ao site, ao portal de vagas e às integrações oficiais da Gênesis, inclusive Meta, Facebook e WhatsApp Business.`] },
+      { title: 'Dados que podemos coletar', items: ['Dados de cadastro e contato, como nome, e-mail, telefone, cidade e empresa.', 'Dados profissionais, currículo, respostas de triagem, candidaturas e histórico de interação.', 'Conteúdo enviado para publicação, como vagas, empresas e grupos.', 'Dados técnicos e de uso, como endereço IP, navegador, registros de acesso, cookies e eventos de segurança.', 'Dados recebidos de integrações autorizadas, incluindo identificadores e mensagens necessários ao atendimento pelo WhatsApp ou Facebook.'] },
+      { title: 'Como e por que usamos', paragraphs: ['Tratamos dados para prestar o serviço solicitado, criar e proteger contas, divulgar oportunidades, conduzir candidaturas, responder mensagens, moderar conteúdo, prevenir fraude, medir desempenho e cumprir obrigações legais. Conforme o caso, o tratamento se baseia na execução de contrato ou procedimentos preliminares, consentimento, legítimo interesse, exercício regular de direitos ou cumprimento de obrigação legal.'] },
+      { title: 'Meta, Facebook e WhatsApp', paragraphs: ['Quando você interage com a Gênesis por produtos da Meta, podemos receber dados permitidos por sua autorização e pelas configurações do serviço, como nome, identificador da conta, telefone, mensagens e dados de interação. Usamos essas informações apenas para atendimento, recrutamento, notificações solicitadas, segurança e suporte. O uso também está sujeito aos termos e políticas da Meta aplicáveis ao usuário.'] },
+      { title: 'Compartilhamento', paragraphs: ['Podemos compartilhar o mínimo necessário com provedores de hospedagem, banco de dados, comunicação, análise, segurança e recrutamento; empresas contratantes quando isso fizer parte da candidatura; e autoridades quando exigido por lei. Esses destinatários devem tratar os dados de acordo com suas funções e obrigações. Não vendemos dados pessoais.'] },
+      { title: 'Transferências e segurança', paragraphs: ['Alguns fornecedores podem processar dados fora do Brasil. Nesses casos, adotamos mecanismos permitidos pela legislação e medidas contratuais e técnicas adequadas. Aplicamos controles de acesso, registro, criptografia em trânsito, limitação de privilégios e práticas de segurança proporcionais ao risco, embora nenhum sistema seja absolutamente invulnerável.'] },
+      { title: 'Retenção', paragraphs: ['Mantemos dados pelo tempo necessário para cumprir as finalidades informadas, obrigações legais e regulatórias, prevenir fraudes e exercer direitos. Depois, os dados são eliminados ou anonimizados, salvo quando a conservação for permitida ou exigida por lei.'] },
+      { title: 'Seus direitos', items: ['Confirmar o tratamento e acessar seus dados.', 'Corrigir dados incompletos, inexatos ou desatualizados.', 'Solicitar anonimização, bloqueio, portabilidade ou eliminação quando cabível.', 'Saber com quem compartilhamos dados e conhecer as consequências de negar consentimento.', 'Revogar consentimento e pedir revisão de decisões automatizadas, quando aplicável.', 'Apresentar reclamação à Autoridade Nacional de Proteção de Dados (ANPD).'] },
+      { title: 'Cookies e escolhas', paragraphs: ['Podemos usar armazenamento local, cookies essenciais e tecnologias semelhantes para sessão, segurança, preferências e funcionamento do portal. Tecnologias não essenciais, quando utilizadas, devem respeitar as escolhas e os requisitos legais aplicáveis. Você também pode controlar cookies pelo navegador, sabendo que isso pode afetar funções do site.'] },
+      { title: 'Crianças e adolescentes', paragraphs: ['O portal não é direcionado a crianças. Dados de adolescentes em contexto de aprendizagem ou primeiro emprego devem ser tratados de acordo com a legislação e com seu melhor interesse. Se identificarmos coleta inadequada, adotaremos medidas para eliminar ou regularizar os dados.'] },
+      { title: 'Alterações desta política', paragraphs: ['Podemos atualizar esta política para refletir mudanças legais, técnicas ou operacionais. A versão vigente e sua data de atualização permanecerão publicadas nesta página. Mudanças relevantes poderão ser comunicadas por meios adicionais.'] },
     ],
   }));
 });
@@ -1534,10 +1542,33 @@ app.get('/termos', (_req, res) => {
     description: 'Regras para publicar vagas, grupos e utilizar os serviços públicos da Gênesis.',
     canonicalPath: '/termos',
     sections: [
-      { title: 'Uso permitido', paragraphs: ['O portal é destinado a oportunidades de emprego, carreira e networking profissional. É proibido publicar golpes, cobranças indevidas de candidatos, conteúdo discriminatório, ilegal, enganoso ou não relacionado à finalidade da plataforma.'] },
-      { title: 'Responsabilidade do publicador', paragraphs: ['Quem cadastra um grupo ou vaga declara possuir autorização para divulgar o conteúdo e manter as informações atualizadas. Toda publicação pode ser revisada, rejeitada, suspensa ou removida pela Gênesis.'] },
-      { title: 'Segurança de candidatos', paragraphs: ['A Gênesis não solicita pagamentos para participação em processos seletivos. Publicadores não devem pedir senhas, códigos de autenticação ou valores aos candidatos.'] },
-      { title: 'Disponibilidade', paragraphs: ['O portal pode passar por manutenção e não garante disponibilidade contínua de convites externos, especialmente quando o WhatsApp altera ou revoga links de grupos.'] },
+      { title: 'Aceitação e elegibilidade', paragraphs: ['Ao acessar ou usar o portal, você declara que leu e aceita estes termos e a Política de Privacidade. Se usar o serviço em nome de uma organização, declara possuir poderes para vinculá-la. Menores de idade somente podem usar o serviço quando permitido pela legislação e, quando necessário, com assistência do responsável.'] },
+      { title: 'Serviços e contas', paragraphs: ['A Gênesis oferece divulgação de vagas e comunidades, páginas de carreira, comunicação e apoio a processos de recrutamento. Você deve fornecer informações verdadeiras, manter seus dados atualizados, proteger suas credenciais e comunicar uso não autorizado da conta.'] },
+      { title: 'Uso permitido', paragraphs: ['O portal é destinado a oportunidades de emprego, carreira e networking profissional. É proibido publicar golpes, cobrar indevidamente candidatos, violar direitos de terceiros, discriminar, enviar spam, introduzir código malicioso, tentar acessar sistemas sem autorização ou usar conteúdo enganoso, ilegal ou incompatível com a finalidade da plataforma.'] },
+      { title: 'Conteúdo e licença', paragraphs: ['Você mantém os direitos sobre o conteúdo que envia e declara possuir autorização para utilizá-lo. Enquanto o conteúdo estiver no serviço, concede à Gênesis licença não exclusiva e gratuita, na medida necessária para armazenar, adaptar tecnicamente, exibir, moderar e distribuir esse conteúdo dentro da operação do portal.'] },
+      { title: 'Vagas e processos seletivos', paragraphs: ['Empresas e publicadores são responsáveis pela veracidade, legalidade e atualização de suas oportunidades e decisões de contratação. A Gênesis pode apoiar o processo, mas não garante contratação, resposta, permanência de vagas ou conduta de terceiros. Candidatos nunca devem pagar para participar de processos divulgados pela Gênesis.'] },
+      { title: 'Integrações de terceiros', paragraphs: ['O serviço pode conter links e integrações com Meta, Facebook, WhatsApp e outros terceiros. O uso dessas plataformas também depende dos respectivos termos. A Gênesis não controla a disponibilidade, as regras ou o conteúdo de serviços externos.'] },
+      { title: 'Moderação e suspensão', paragraphs: ['Podemos revisar, limitar, suspender ou remover contas e conteúdo que violem estes termos, a lei, direitos de terceiros ou a segurança da comunidade. Quando adequado, consideraremos contexto, gravidade e reincidência.'] },
+      { title: 'Propriedade intelectual', paragraphs: ['Marcas, identidade visual, software, textos institucionais e demais elementos próprios da Gênesis são protegidos por lei. Estes termos não transferem qualquer direito sobre esses ativos, exceto a permissão limitada de uso do serviço.'] },
+      { title: 'Disponibilidade e garantias', paragraphs: ['Buscamos manter o serviço seguro e disponível, mas ele pode sofrer interrupções, manutenção ou alterações. Na extensão permitida por lei, o serviço é fornecido conforme disponível, sem garantia de resultado específico ou disponibilidade contínua de links e integrações externas.'] },
+      { title: 'Responsabilidade', paragraphs: ['Cada parte responde pelos danos diretos que causar nos limites da legislação aplicável. Nada nestes termos exclui direitos irrenunciáveis do consumidor ou responsabilidades que não possam ser limitadas por lei.'] },
+      { title: 'Alterações e encerramento', paragraphs: ['Podemos atualizar os serviços e estes termos, mantendo a versão vigente publicada com sua data. Você pode deixar de usar o serviço e solicitar a exclusão de seus dados. Disposições que, por sua natureza, devam sobreviver ao encerramento continuarão aplicáveis.'] },
+      { title: 'Lei aplicável', paragraphs: ['Estes termos são regidos pelas leis da República Federativa do Brasil. Fica preservado o foro legalmente competente, inclusive o domicílio do consumidor quando aplicável.'] },
+    ],
+  }));
+});
+
+app.get(['/exclusao-de-dados', '/exclusao-dados'], (_req, res) => {
+  res.send(institutionalPage({
+    title: 'Exclusão de dados do usuário',
+    description: 'Instruções claras para solicitar a exclusão de dados da Gênesis, inclusive dados recebidos por integrações da Meta.',
+    canonicalPath: '/exclusao-de-dados',
+    sections: [
+      { title: 'Como solicitar', items: [`Envie um e-mail para ${PRIVACY_EMAIL} com o assunto “Exclusão de dados”.`, 'Informe o nome, e-mail e telefone usados no portal ou no atendimento pelo WhatsApp/Facebook.', 'Indique se deseja excluir a conta inteira ou apenas dados de uma integração ou atendimento específico.', 'Aguarde a confirmação de recebimento e, se necessário, responda à verificação de identidade.'] },
+      { title: 'O que acontece depois', paragraphs: ['Após validar a solicitação, eliminaremos ou anonimizaremos os dados pessoais abrangidos e encerraremos a conta, quando solicitado. Também comunicaremos operadores relevantes quando isso for necessário e tecnicamente possível. Enviaremos uma confirmação ao final do processo.'] },
+      { title: 'Prazo e acompanhamento', paragraphs: ['Responderemos sem atraso indevido e observaremos os prazos da legislação aplicável. Caso sejam necessárias informações adicionais ou haja motivo legal para conservar parte dos dados, explicaremos isso na resposta. O mesmo canal de e-mail pode ser usado para acompanhar o pedido.'] },
+      { title: 'Dados da Meta, Facebook e WhatsApp', paragraphs: ['Este procedimento abrange dados recebidos por login, mensagens, leads ou outras integrações da Meta vinculadas à Gênesis. Remover o aplicativo nas configurações da sua conta Meta interrompe acessos futuros, mas não substitui o pedido à Gênesis para apagar dados já recebidos.'] },
+      { title: 'Exceções legais', paragraphs: ['Alguns registros podem ser conservados pelo período estritamente necessário para cumprir obrigação legal ou regulatória, prevenir fraude, preservar segurança ou exercer direitos em processos. Nesses casos, o uso ficará limitado à finalidade que justificar a retenção.'] },
     ],
   }));
 });
@@ -1587,6 +1618,7 @@ app.get('/sitemap-estaticas.xml', (_req, res) => {
     { loc: `${SITE_URL}/anunciar-vaga`, lastmod: now, priority: '0.8', changefreq: 'monthly' },
     { loc: `${SITE_URL}/privacidade`, lastmod: now, priority: '0.3', changefreq: 'yearly' },
     { loc: `${SITE_URL}/termos`, lastmod: now, priority: '0.3', changefreq: 'yearly' },
+    { loc: `${SITE_URL}/exclusao-de-dados`, lastmod: now, priority: '0.3', changefreq: 'yearly' },
     { loc: `${SITE_URL}/seguranca`, lastmod: now, priority: '0.5', changefreq: 'yearly' },
   ];
   res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries.map(sitemapUrlEntry).join('\n')}\n</urlset>`);
@@ -1703,3 +1735,4 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
 
 start();
+

@@ -1343,6 +1343,19 @@ select[data-location-city]:disabled { color: #7b8980; background: #eef2ef; curso
 .candidate-channel-picker small { margin-top: 3px; color: #78867e; font-weight: 550; line-height: 1.4; }
 .candidate-channel-picker input:checked + span { border-color: #159c50; background: #edf9f1; box-shadow: 0 0 0 2px rgba(21,156,80,.08); }
 .career-form-footer { display: flex; justify-content: flex-end; gap: 9px; }
+
+/* Conteúdo jurídico e privacidade */
+.legal-content p + p { margin-top: 12px; }
+.legal-content ul { margin: 0; padding-left: 20px; color: #536b74; line-height: 1.72; }
+.legal-content li + li { margin-top: 8px; }
+.legal-updated { margin-top: 14px !important; font-size: .84rem !important; font-weight: 750; }
+.legal-contact { margin-top: 22px; padding: 25px; border: 1px solid #b9ddd5; border-radius: 21px; background: #e8f7f3; }
+.legal-contact h2 { margin: 0 0 9px; }
+.legal-contact p { margin: 0; color: #48636b; line-height: 1.7; }
+.legal-contact a { color: #087e70; font-weight: 850; text-decoration: underline; text-underline-offset: 3px; }
+html[data-theme="dark"] .legal-content ul { color: #9db2ba; }
+html[data-theme="dark"] .legal-contact { border-color: #28584f; background: #0d2928; }
+html[data-theme="dark"] .legal-contact p { color: #a8c8c2; }
 .career-job-layout aside { display: grid; gap: 12px; }
 .career-tip-card { padding: 19px; border: 1px solid #dfe7e1; border-radius: 16px; background: #fff; }
 .career-tip-card > span { color: #159c50; font-size: .67rem; font-weight: 900; text-transform: uppercase; }
@@ -1440,3 +1453,4 @@ select[data-location-city]:disabled { color: #7b8980; background: #eef2ef; curso
   .career-kpis strong { font-size: 1.55rem; }
   .career-kpis small { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 }
+
