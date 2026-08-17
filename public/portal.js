@@ -477,6 +477,61 @@
   }
 })();
 
+(function genesisInteractiveDemo() {
+  const sections = document.querySelectorAll('[data-genesis-demo]');
+  if (!sections.length) return;
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const timers = new Set();
+  const later = (callback, delay) => {
+    const timer = window.setTimeout(() => { timers.delete(timer); callback(); }, delay);
+    timers.add(timer);
+  };
+  const clearTimers = () => {
+    timers.forEach((timer) => window.clearTimeout(timer));
+    timers.clear();
+  };
+  const show = (section, selector) => section.querySelector(selector)?.classList.add('is-visible');
+  function run(section) {
+    if (reducedMotion.matches || document.hidden) return;
+    clearTimers();
+    section.classList.add('is-animated');
+    section.querySelectorAll('.is-visible').forEach((item) => item.classList.remove('is-visible'));
+    const timeline = [
+      [0, '[data-demo-step="0"]'],
+      [2300, '[data-demo-step="1"]'],
+      [3900, '[data-demo-typing="2"]'],
+      [5450, '[data-demo-step="2"]'],
+      [7700, '[data-demo-step="3"]'],
+      [9300, '[data-demo-typing="4"]'],
+      [10850, '[data-demo-step="4"]'],
+    ];
+    timeline.forEach(([delay, selector]) => later(() => {
+      if (selector.includes('step')) section.querySelectorAll('[data-demo-typing].is-visible').forEach((item) => item.classList.remove('is-visible'));
+      show(section, selector);
+    }, delay));
+    later(() => run(section), 16500);
+  }
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      run(entry.target);
+      observer.unobserve(entry.target);
+    });
+  }, { threshold: .24 });
+  sections.forEach((section) => observer.observe(section));
+  reducedMotion.addEventListener?.('change', () => {
+    clearTimers();
+    sections.forEach((section) => {
+      section.classList.toggle('is-animated', !reducedMotion.matches);
+      if (!reducedMotion.matches) run(section);
+    });
+  });
+  document.addEventListener('visibilitychange', () => {
+    clearTimers();
+    if (!document.hidden && !reducedMotion.matches) sections.forEach(run);
+  });
+})();
+
 (function companyPortalInteractions() {
   document.querySelectorAll('[data-copy-text]').forEach((button) => {
     button.addEventListener('click', async () => {

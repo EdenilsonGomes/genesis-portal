@@ -598,6 +598,59 @@ function organizationSchema() {
   };
 }
 
+function genesisInteractiveDemoSection() {
+  const demoMessages = [
+    ['Evelyn', 'Olá, Maria! 👋<br>Sou a Evelyn, assistente da Gênesis.<br>Vou te ajudar com sua candidatura.', 'evelyn'],
+    ['Maria', 'Oi, tenho interesse na vaga<br>de auxiliar de limpeza.', 'candidate'],
+    ['Evelyn', 'Perfeito!<br>Qual unidade ou região você<br>tem interesse?', 'evelyn'],
+    ['Maria', 'UNINOVE Vila Prudente.', 'candidate'],
+    ['Evelyn', 'Ótimo. Para continuarmos, preciso<br>de algumas informações básicas…', 'evelyn'],
+  ];
+  const messagesHtml = demoMessages.map(([author, message, role], index) => `${index > 0 && role === 'evelyn' ? `<div class="demo-typing" data-demo-typing="${index}" aria-label="Evelyn está digitando"><i></i><i></i><i></i><span>Evelyn está digitando…</span></div>` : ''}<div class="demo-message ${role}" data-demo-step="${index}"><strong>${author}</strong><p>${message}</p><time>${['09:41', '09:42', '09:42', '09:43', '09:43'][index]}</time></div>`).join('');
+  return `
+  <section class="genesis-live-demo" data-genesis-demo aria-labelledby="genesis-demo-title">
+    <div class="container genesis-demo-heading">
+      <span class="eyebrow">Demonstração</span>
+      <h2 id="genesis-demo-title">Veja a Gênesis trabalhando por você</h2>
+      <p>Atendimento inteligente, triagem automática e gestão completa do recrutamento pelo WhatsApp.</p>
+    </div>
+    <div class="container genesis-device-stage">
+      <div class="genesis-macbook" aria-label="Demonstração visual da plataforma Gênesis em um notebook">
+        <div class="genesis-macbook-lid">
+          <span class="genesis-camera" aria-hidden="true"></span>
+          <div class="genesis-demo-app">
+            <aside class="demo-sidebar">
+              <img src="/assets/genesis-brand.svg" alt="Gênesis" class="demo-brand">
+              <nav aria-label="Menu demonstrativo da Gênesis">
+                <span class="active">Conversas</span><span>Candidatos</span><span>Vagas</span><span>Revisões</span><span>Entrevistas</span><span>Divulgação</span>
+              </nav>
+            </aside>
+            <section class="demo-inbox" aria-label="Lista demonstrativa de candidatos">
+              <header><strong>Conversas</strong><span>4 ativas</span></header>
+              <article class="active"><i>MS</i><div><b>Maria Silva</b><span>Triagem</span></div><time>09:43</time></article>
+              <article><i>JS</i><div><b>João Santos</b><span>Documentos</span></div><time>09:31</time></article>
+              <article><i>AP</i><div><b>Ana Paula</b><span>Entrevista</span></div><time>ontem</time></article>
+              <article><i>CL</i><div><b>Carlos Lima</b><span>Revisão</span></div><time>ontem</time></article>
+            </section>
+            <section class="demo-chat" aria-label="Conversa demonstrativa entre Evelyn e Maria Silva">
+              <header><i>MS</i><div><strong>Maria Silva</strong><span>Triagem em andamento · Evelyn ativa</span></div><b>Auxiliar de Limpeza</b></header>
+              <div class="demo-thread" aria-live="polite">${messagesHtml}</div>
+              <div class="demo-composer"><span>Digite uma mensagem…</span><button type="button" aria-label="Enviar mensagem demonstrativa" tabindex="-1">Enviar</button></div>
+            </section>
+          </div>
+        </div>
+        <div class="genesis-macbook-base" aria-hidden="true"><i></i></div>
+      </div>
+    </div>
+    <div class="container genesis-demo-benefits">
+      <article><span>01</span><h3>Atendimento 24/7</h3><p>Evelyn atende e tira dúvidas dos candidatos automaticamente.</p></article>
+      <article><span>02</span><h3>Triagem Inteligente</h3><p>Coleta informações e conduz a etapa inicial do recrutamento.</p></article>
+      <article><span>03</span><h3>Gestão Completa</h3><p>Acompanhe candidatos, entrevistas, documentos e etapas em um só lugar.</p></article>
+      <article><span>04</span><h3>Mais Contratações</h3><p>Processos mais rápidos, organizados e com menos trabalho operacional.</p></article>
+    </div>
+  </section>`;
+}
+
 function landingPage(req, res) {
   const panelLoginUrl = PANEL_URL ? `${PANEL_URL}/login` : '/painel';
   const content = `${header()}
@@ -673,6 +726,8 @@ function landingPage(req, res) {
         </div>
       </div>
     </section>
+
+    ${genesisInteractiveDemoSection()}
 
     <section class="section section-dark">
       <div class="container split-panel">
@@ -1203,6 +1258,7 @@ function companyLeadPage(req, res, { errors = [], values = {} } = {}) {
           <div class="lead-scorecard"><strong>Diagnóstico inicial</strong><span>Este formulário inicia uma conversa com a equipe. Nenhuma vaga é publicada e nenhum candidato é acionado automaticamente.</span></div>
         </div>
       </section>
+      ${genesisInteractiveDemoSection()}
       <section class="lead-main">
         <div class="container lead-layout">
           <aside class="lead-benefits"><h2>O que sua empresa pode receber</h2><ul class="check-list"><li>Página profissional para a vaga</li><li>Captação via WhatsApp e QR Code</li><li>Triagem automatizada</li><li>Banco de talentos e grupo de vagas</li><li>Painel com candidatos e entrevistas</li><li>Divulgação e acompanhamento do funil</li></ul><a class="btn btn-accent btn-block" href="${escapeHtml(commercialWhatsAppUrl())}" target="_blank" rel="noopener" data-track="CTA_FORM_COMERCIAL">Falar agora pelo WhatsApp</a></aside>
@@ -1370,6 +1426,7 @@ const companyPortals = registerCompanyPortalRoutes({
     vacancyUrl,
     formatMoney,
     vacancyCard,
+    genesisInteractiveDemoSection,
   },
 });
 
