@@ -14,6 +14,7 @@ const checks = [
   ['/robots.txt', 200, 'Sitemap:'],
   ['/sitemap.xml', 200, '<sitemapindex'],
   ['/privacidade', 200, 'Política de privacidade'],
+  ['/sobre', 200, 'Sobre a Gênesis Recruta'],
   ['/termos', 200, 'Termos de uso'],
   ['/exclusao-de-dados', 200, 'Exclusão de dados do usuário'],
 ];

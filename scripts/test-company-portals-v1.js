@@ -20,7 +20,7 @@ const js = read('public/portal.js');
 const migration = read('sql/17_GENESIS_PORTAL_EMPRESAS_MVP.sql');
 const pkg = JSON.parse(read('package.json'));
 
-assert(pkg.version === '13.2.0', 'Versão do portal precisa ser 13.2.0.');
+assert(pkg.version === '13.3.0', 'Versão do portal precisa ser 13.3.0.');
 assert(server.includes('registerCompanyPortalRoutes'), 'Módulo de portais de empresas não foi registrado.');
 assert(moduleText.includes("['EMPRESA','RECRUTADOR'].includes"), 'Conta RECRUTADOR existente também precisa administrar portal.');
 assert(moduleText.includes("'Criar portal da minha empresa'") && moduleText.includes("'Gerenciar meu portal'"), 'Landing autenticada não possui CTAs contextuais.');

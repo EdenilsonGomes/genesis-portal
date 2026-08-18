@@ -19,7 +19,7 @@ const {
   normalizeStateCode,
 } = require('./lib/brazil-locations');
 
-const APP_VERSION = '13.1.0';
+const APP_VERSION = '13.3.0';
 const PORT = Number(process.env.PORT || 3000);
 const DATABASE_URL = process.env.DATABASE_URL;
 const PGHOST = process.env.PGHOST;
@@ -30,17 +30,20 @@ const PGPASSWORD = process.env.PGPASSWORD;
 const DB_SSL = String(process.env.DB_SSL || 'false').toLowerCase() === 'true';
 const DB_POOL_MAX = Math.min(Math.max(Number(process.env.DB_POOL_MAX || 10), 2), 50);
 
-const SITE_URL = normalizeBaseUrl(process.env.SITE_URL || 'http://localhost:3000');
-const PANEL_URL = normalizeBaseUrl(process.env.PANEL_URL || '');
-const BRAND_NAME_INPUT = String(process.env.BRAND_NAME || 'Gênesis').trim();
-const BRAND_NAME = /^(genesis|gênesis)\s*ia$/i.test(BRAND_NAME_INPUT) ? 'Gênesis' : BRAND_NAME_INPUT;
+const INSTITUTIONAL_URL = normalizeBaseUrl(process.env.INSTITUTIONAL_URL || 'https://genesisrecruta.com.br');
+const SITE_URL = normalizeBaseUrl(process.env.SITE_URL || 'https://vagas.genesisrecruta.com.br');
+const PANEL_URL = normalizeBaseUrl(process.env.PANEL_URL || 'https://app.genesisrecruta.com.br');
+const BRAND_NAME_INPUT = String(process.env.BRAND_NAME || 'Gênesis Recruta').trim();
+const BRAND_NAME = /^(genesis|gênesis)(\s*ia)?$/i.test(BRAND_NAME_INPUT) ? 'Gênesis Recruta' : BRAND_NAME_INPUT;
 const PORTAL_BRAND_NAME = String(process.env.PORTAL_BRAND_NAME || 'Gênesis Vagas').trim();
 const PORTAL_BRAND_TAGLINE = String(process.env.PORTAL_BRAND_TAGLINE || 'Pessoas, oportunidades e tecnologia').trim();
 const ASSET_VERSION = `${String(process.env.ASSET_VERSION || '1301').trim()}-${APP_VERSION}`;
-const ORGANIZATION_LEGAL_NAME = String(process.env.ORGANIZATION_LEGAL_NAME || BRAND_NAME).trim();
-const PRIVACY_EMAIL = String(process.env.PRIVACY_EMAIL || 'privacidade@genesisrecruta.com.br').trim();
+const ORGANIZATION_LEGAL_NAME = String(process.env.ORGANIZATION_LEGAL_NAME || '50.374.306 Edenilson Gomes do Nascimento Junior').trim();
+const ORGANIZATION_CNPJ = String(process.env.ORGANIZATION_CNPJ || '50.374.306/0001-86').trim();
+const ORGANIZATION_RESPONSIBLE = String(process.env.ORGANIZATION_RESPONSIBLE || 'Edenilson Gomes do Nascimento Junior').trim();
+const PRIVACY_EMAIL = String(process.env.PRIVACY_EMAIL || 'junior13djd@gmail.com').trim();
 const ORGANIZATION_LOGO_URL = String(
-  process.env.ORGANIZATION_LOGO_URL || `${SITE_URL}/assets/genesis-mark.svg`,
+  process.env.ORGANIZATION_LOGO_URL || `${INSTITUTIONAL_URL}/assets/genesis-mark.svg`,
 ).trim();
 const ORGANIZATION_CITY = String(process.env.ORGANIZATION_CITY || 'São Paulo').trim();
 const ORGANIZATION_STATE = String(process.env.ORGANIZATION_STATE || 'SP').trim().toUpperCase();
@@ -376,6 +379,17 @@ function currentUrl(req) {
   return `${SITE_URL}${req.originalUrl.split('#')[0]}`;
 }
 
+function isJobsHostname(req) {
+  const hostname = String(req.hostname || '').toLowerCase().replace(/\.$/, '');
+  let configuredHostname = '';
+  try { configuredHostname = new URL(SITE_URL).hostname.toLowerCase(); } catch { configuredHostname = ''; }
+  return hostname === 'vagas.genesisrecruta.com.br' || Boolean(configuredHostname && hostname === configuredHostname);
+}
+
+function legalIdentification() {
+  return `${BRAND_NAME} é uma marca operada por ${ORGANIZATION_LEGAL_NAME} — CNPJ ${ORGANIZATION_CNPJ}.`;
+}
+
 function decodeHtmlAttribute(value) {
   return String(value || '')
     .replace(/&#039;/g, "'")
@@ -448,14 +462,15 @@ function header({ account = null, accountAction = '' } = {}) {
   const publicAccountAction = accountAction || `<a class="btn btn-ghost header-account" href="${account ? '/minha-conta' : '/entrar'}">${account ? 'Minha conta' : 'Publicar grátis'}</a>`;
   return `<header class="site-header">
     <div class="container header-inner">
-      <a class="brand" href="/" aria-label="Página inicial da ${escapeHtml(BRAND_NAME)}">
+      <a class="brand" href="${escapeHtml(INSTITUTIONAL_URL)}" aria-label="Página inicial da ${escapeHtml(BRAND_NAME)}">
         <img src="/assets/brand/genesis-symbol.webp?v=${escapeHtml(ASSET_VERSION)}" alt="" width="42" height="42">
         <span>${escapeHtml(BRAND_NAME)}<small>Pessoas · Oportunidades · Tecnologia</small></span>
       </a>
       <nav class="nav" aria-label="Navegação principal">
-        <a href="/#solucoes">Soluções</a>
-        <a href="/vagas">Vagas</a>
-        <a href="/grupos">Grupos</a>
+        <a href="${escapeHtml(INSTITUTIONAL_URL)}/#solucoes">Soluções</a>
+        <a href="${escapeHtml(SITE_URL)}/vagas">Vagas</a>
+        <a href="${escapeHtml(SITE_URL)}/grupos">Grupos</a>
+        <a href="/sobre">Sobre</a>
         <a href="/anunciar-vaga">Para empresas</a>
       </nav>
       <div class="header-actions">
@@ -467,7 +482,7 @@ function header({ account = null, accountAction = '' } = {}) {
     </div>
     <div class="mobile-menu" data-mobile-menu>
       <nav class="container" aria-label="Navegação móvel">
-        <a href="/">Início</a><a href="/vagas">Encontrar vagas</a><a href="/grupos">Grupos de emprego</a><a href="/cadastro">Publicar grátis</a><a href="/anunciar-vaga">Contratar com a Gênesis</a><a href="${escapeHtml(panelLoginUrl)}">Painel do cliente</a>
+        <a href="${escapeHtml(INSTITUTIONAL_URL)}">Início</a><a href="${escapeHtml(SITE_URL)}/vagas">Encontrar vagas</a><a href="${escapeHtml(SITE_URL)}/grupos">Grupos de emprego</a><a href="${escapeHtml(SITE_URL)}/cadastro">Publicar grátis</a><a href="/sobre">Sobre</a><a href="/anunciar-vaga">Contratar com a ${escapeHtml(BRAND_NAME)}</a><a href="${escapeHtml(panelLoginUrl)}">Painel do cliente</a>
       </nav>
     </div>
   </header><button class="menu-backdrop" data-menu-backdrop type="button" aria-label="Fechar menu"></button>`;
@@ -479,7 +494,7 @@ function footer() {
   return `<footer class="site-footer">
     <div class="container footer-grid">
       <div>
-        <a class="brand" href="/">
+        <a class="brand" href="${escapeHtml(INSTITUTIONAL_URL)}">
           <img src="/assets/brand/genesis-symbol.webp?v=${escapeHtml(ASSET_VERSION)}" alt="" width="42" height="42">
           <span>${escapeHtml(BRAND_NAME)}<small>Recrutamento conversacional</small></span>
         </a>
@@ -487,23 +502,25 @@ function footer() {
       </div>
       <div class="footer-col">
         <h4>Candidatos</h4>
-        <a href="/vagas">Encontrar vagas</a>
-        <a href="/grupos">Grupos de emprego</a>
+        <a href="${escapeHtml(SITE_URL)}/vagas">Encontrar vagas</a>
+        <a href="${escapeHtml(SITE_URL)}/grupos">Grupos de emprego</a>
       </div>
       <div class="footer-col">
         <h4>Recrutadores</h4>
-        <a href="/cadastro">Criar conta gratuita</a>
-        <a href="/entrar">Gerenciar publicações</a>
-        <a href="/minha-conta/vagas/nova">Enviar uma vaga</a>
+        <a href="${escapeHtml(SITE_URL)}/cadastro">Criar conta gratuita</a>
+        <a href="${escapeHtml(SITE_URL)}/entrar">Gerenciar publicações</a>
+        <a href="${escapeHtml(SITE_URL)}/minha-conta/vagas/nova">Enviar uma vaga</a>
       </div>
       <div class="footer-col">
         <h4>Empresas</h4>
-        <a href="/anunciar-vaga">Conhecer a Gênesis</a>
+        <a href="/sobre">Sobre a ${escapeHtml(BRAND_NAME)}</a>
+        <a href="/anunciar-vaga">Conhecer a ${escapeHtml(BRAND_NAME)}</a>
         <a href="${escapeHtml(commercialWhatsAppUrl())}" target="_blank" rel="noopener" data-track="CTA_FOOTER_COMERCIAL">Falar com especialista</a>
         <a href="${escapeHtml(panelLoginUrl)}">Painel do cliente</a>
       </div>
     </div>
-    <div class="container footer-bottom"><span>© ${year} ${escapeHtml(BRAND_NAME)}. Todos os direitos reservados.</span><nav aria-label="Informações legais"><a href="/privacidade">Privacidade</a><a href="/termos">Termos de uso</a><a href="/exclusao-de-dados">Exclusão de dados</a><a href="/seguranca">Segurança</a></nav></div>
+    <div class="container footer-legal"><p>${escapeHtml(legalIdentification())}</p><a href="mailto:${escapeHtml(PRIVACY_EMAIL)}">${escapeHtml(PRIVACY_EMAIL)}</a></div>
+    <div class="container footer-bottom"><span>© ${year} ${escapeHtml(BRAND_NAME)}. Todos os direitos reservados.</span><nav aria-label="Informações legais"><a href="/sobre">Sobre</a><a href="/privacidade">Privacidade</a><a href="/termos">Termos de uso</a><a href="/exclusao-de-dados">Exclusão de dados</a><a href="/seguranca">Segurança</a></nav></div>
   </footer>
   <nav class="portal-bottom-nav" aria-label="Navegação rápida">
     <a href="/" data-nav-path="/"><b>Início</b></a>
@@ -569,12 +586,12 @@ function portalOrganizationSchema() {
 
 
 function institutionalPage({ title, description, sections, canonicalPath, updatedAt = '15 de agosto de 2026' }) {
-  const content = `${header()}<main id="conteudo" class="legal-main"><section class="legal-hero"><div class="container"><span class="eyebrow">Transparência Gênesis</span><h1>${escapeHtml(title)}</h1><p>${escapeHtml(description)}</p><p class="legal-updated">Última atualização: ${escapeHtml(updatedAt)}</p></div></section><section class="container legal-content">${sections.map((section) => `<article><h2>${escapeHtml(section.title)}</h2>${(section.paragraphs || []).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}${section.items?.length ? `<ul>${section.items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` : ''}</article>`).join('')}</section><section class="container legal-contact"><h2>Contato sobre privacidade</h2><p>Para exercer direitos, esclarecer dúvidas ou solicitar a exclusão de dados, escreva para <a href="mailto:${escapeHtml(PRIVACY_EMAIL)}">${escapeHtml(PRIVACY_EMAIL)}</a>. Para sua proteção, poderemos pedir informações suficientes para confirmar sua identidade.</p></section></main>${footer()}`;
+  const content = `${header()}<main id="conteudo" class="legal-main"><section class="legal-hero"><div class="container"><span class="eyebrow">Transparência ${escapeHtml(BRAND_NAME)}</span><h1>${escapeHtml(title)}</h1><p>${escapeHtml(description)}</p><p class="legal-updated">Última atualização: ${escapeHtml(updatedAt)}</p></div></section><section class="container legal-content"><article><h2>Identificação da empresa</h2><p>${escapeHtml(legalIdentification())}</p><p>Responsável legal: ${escapeHtml(ORGANIZATION_RESPONSIBLE)}. Sede: ${escapeHtml(ORGANIZATION_CITY)}-${escapeHtml(ORGANIZATION_STATE)}. Site: <a href="${escapeHtml(INSTITUTIONAL_URL)}">genesisrecruta.com.br</a>.</p></article>${sections.map((section) => `<article><h2>${escapeHtml(section.title)}</h2>${(section.paragraphs || []).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join('')}${section.items?.length ? `<ul>${section.items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` : ''}</article>`).join('')}</section><section class="container legal-contact"><h2>Contato</h2><p>Para exercer direitos, esclarecer dúvidas ou solicitar a exclusão de dados, escreva para <a href="mailto:${escapeHtml(PRIVACY_EMAIL)}">${escapeHtml(PRIVACY_EMAIL)}</a>. Para sua proteção, poderemos pedir informações suficientes para confirmar sua identidade.</p></section></main>${footer()}`;
   return metaPage({
     title,
     description,
-    canonical: `${SITE_URL}${canonicalPath}`,
-    image: `${SITE_URL}/assets/genesis-social.png`,
+    canonical: `${INSTITUTIONAL_URL}${canonicalPath}`,
+    image: `${INSTITUTIONAL_URL}/assets/genesis-social.png`,
     bodyClass: 'light-page',
     content,
     structuredData: [organizationSchema()],
@@ -586,8 +603,11 @@ function organizationSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: ORGANIZATION_LEGAL_NAME,
-    url: SITE_URL,
+    name: BRAND_NAME,
+    legalName: ORGANIZATION_LEGAL_NAME,
+    taxID: ORGANIZATION_CNPJ,
+    url: INSTITUTIONAL_URL,
+    email: PRIVACY_EMAIL,
     logo: ORGANIZATION_LOGO_URL,
     address: {
       '@type': 'PostalAddress',
@@ -660,13 +680,13 @@ function landingPage(req, res) {
         <div>
           <span class="eyebrow">Sistema operacional para contratação em volume</span>
           <h1>Contrate com velocidade. Sem perder o controle.</h1>
-          <p class="hero-copy">A Gênesis conecta atração, WhatsApp, qualificação, documentos e agenda em um fluxo claro — do primeiro contato à entrevista.</p>
+          <p class="hero-copy">A ${escapeHtml(BRAND_NAME)} conecta atração, WhatsApp, qualificação, documentos e agenda em um fluxo claro — do primeiro contato à entrevista.</p>
           <div class="hero-actions">
-            <a class="btn btn-primary btn-lg" href="/anunciar-vaga" data-track="CTA_HERO_DEMO">Conhecer a operação</a>
+            <a class="btn btn-primary btn-lg" href="/anunciar-vaga" data-track="CTA_HERO_DEMO">Conhecer a ${escapeHtml(BRAND_NAME)}</a>
             <a class="btn btn-ghost btn-lg" href="/#solucoes" data-track="CTA_HERO_COMO_FUNCIONA">Ver a plataforma</a>
           </div>
           <div class="candidate-shortcuts" aria-label="Atalhos para candidatos e publicadores">
-            <span>Procurando emprego?</span><a href="/vagas">Ver vagas</a><a href="/grupos">Encontrar grupos</a><a href="/cadastro">Publicar grátis</a>
+            <span>Procurando emprego?</span><a href="${escapeHtml(SITE_URL)}/vagas">Ver vagas</a><a href="${escapeHtml(SITE_URL)}/grupos">Encontrar grupos</a><a href="${escapeHtml(SITE_URL)}/cadastro">Publicar grátis</a>
           </div>
         </div>
         <div class="product-orbit" aria-label="Representação visual da plataforma Gênesis">
@@ -695,11 +715,11 @@ function landingPage(req, res) {
 
     <section class="discovery-strip" aria-labelledby="descobrir-titulo">
       <div class="container">
-        <div class="section-head compact"><div><span class="eyebrow">Ecossistema Gênesis</span><h2 id="descobrir-titulo">Um ecossistema que encontra e conduz candidatos.</h2></div><p>O portal gera descoberta. A operação conversacional transforma interesse em candidatos qualificados e entrevistas organizadas.</p></div>
+        <div class="section-head compact"><div><span class="eyebrow">Ecossistema ${escapeHtml(BRAND_NAME)}</span><h2 id="descobrir-titulo">Um ecossistema que encontra e conduz candidatos.</h2></div><p>O portal gera descoberta. A operação conversacional transforma interesse em candidatos qualificados e entrevistas organizadas.</p></div>
         <div class="discovery-grid">
-          <a class="discovery-card" href="/vagas"><span class="discovery-icon">▣</span><div><strong>Vagas abertas</strong><p>Oportunidades completas, atualizadas e conectadas ao painel.</p></div><b>Explorar →</b></a>
-          <a class="discovery-card" href="/grupos"><span class="discovery-icon">◉</span><div><strong>Grupos de emprego</strong><p>Comunidades por região, profissão, networking e carreira.</p></div><b>Encontrar →</b></a>
-          <a class="discovery-card" href="/cadastro"><span class="discovery-icon">＋</span><div><strong>Publique gratuitamente</strong><p>Recrutadores e empresas gerenciam vagas e grupos em uma conta.</p></div><b>Criar conta →</b></a>
+          <a class="discovery-card" href="${escapeHtml(SITE_URL)}/vagas"><span class="discovery-icon">▣</span><div><strong>Vagas abertas</strong><p>Oportunidades completas, atualizadas e conectadas ao painel.</p></div><b>Explorar →</b></a>
+          <a class="discovery-card" href="${escapeHtml(SITE_URL)}/grupos"><span class="discovery-icon">◉</span><div><strong>Grupos de emprego</strong><p>Comunidades por região, profissão, networking e carreira.</p></div><b>Encontrar →</b></a>
+          <a class="discovery-card" href="${escapeHtml(SITE_URL)}/cadastro"><span class="discovery-icon">＋</span><div><strong>Publique gratuitamente</strong><p>Recrutadores e empresas gerenciam vagas e grupos em uma conta.</p></div><b>Criar conta →</b></a>
         </div>
       </div>
     </section>
@@ -732,31 +752,31 @@ function landingPage(req, res) {
     <section class="section section-dark">
       <div class="container split-panel">
         <article class="company-panel company-panel-primary">
-          <span class="panel-kicker">Para empresas</span><h3>Publicar é o começo. Conduzir bem é o que gera contratação.</h3><p>A Gênesis combina aquisição, conversa e gestão para sua equipe avançar com velocidade e contexto.</p>
+          <span class="panel-kicker">Para empresas</span><h3>Publicar é o começo. Conduzir bem é o que gera contratação.</h3><p>A ${escapeHtml(BRAND_NAME)} combina aquisição, conversa e gestão para sua equipe avançar com velocidade e contexto.</p>
           <ul class="check-list"><li>Captação e qualificação de candidatos</li><li>Triagem e documentos pelo WhatsApp</li><li>Agenda e acompanhamento no painel</li><li>Métricas por vaga e canal de origem</li></ul>
-          <a class="btn btn-primary btn-lg" href="/anunciar-vaga" data-track="CTA_EMPRESA_FORM">Quero contratar com a Gênesis</a>
+          <a class="btn btn-primary btn-lg" href="/anunciar-vaga" data-track="CTA_EMPRESA_FORM">Quero contratar com a ${escapeHtml(BRAND_NAME)}</a>
         </article>
         <article class="candidate-panel">
           <span class="panel-kicker">Para candidatos e publicadores</span><h3>Oportunidades claras. Comunidades úteis.</h3><p>No Portal de Vagas Gênesis, candidatos encontram caminhos diretos e publicadores acompanham conteúdos enviados para revisão.</p>
-          <div class="hero-actions"><a class="btn btn-accent btn-lg" href="/vagas">Ver oportunidades</a><a class="btn btn-ghost btn-lg" href="/cadastro">Publicar grátis</a></div>
+          <div class="hero-actions"><a class="btn btn-accent btn-lg" href="${escapeHtml(SITE_URL)}/vagas">Ver oportunidades</a><a class="btn btn-ghost btn-lg" href="${escapeHtml(SITE_URL)}/cadastro">Publicar grátis</a></div>
         </article>
       </div>
     </section>
 
     <section class="cta-band">
-      <div class="container cta-shell"><div><h2>Seu próximo processo pode começar melhor.</h2><p>Conte o volume, os cargos e o prazo. A Gênesis desenha o fluxo com você.</p></div><div class="hero-actions"><a class="btn btn-dark btn-lg" href="/anunciar-vaga">Conversar com a Gênesis</a><a class="btn btn-ghost btn-lg" href="${escapeHtml(panelLoginUrl)}">Painel do cliente</a></div></div>
+      <div class="container cta-shell"><div><h2>Seu próximo processo pode começar melhor.</h2><p>Conte o volume, os cargos e o prazo. A ${escapeHtml(BRAND_NAME)} desenha o fluxo com você.</p></div><div class="hero-actions"><a class="btn btn-dark btn-lg" href="/anunciar-vaga">Conversar com a ${escapeHtml(BRAND_NAME)}</a><a class="btn btn-ghost btn-lg" href="${escapeHtml(panelLoginUrl)}">Painel do cliente</a></div></div>
     </section>
   </main>${footer()}`;
 
   return res.send(metaPage({
-    title: `${BRAND_NAME} — recrutamento conversacional com controle`,
-    description: 'Conecte atração, WhatsApp, qualificação, documentos e entrevistas em um fluxo operacional claro para sua equipe.',
-    canonical: SITE_URL,
-    image: `${SITE_URL}/assets/og-default.png`,
+    title: `${BRAND_NAME} — tecnologia para recrutamento e seleção`,
+    description: 'A Gênesis Recruta conecta atração, WhatsApp, qualificação, documentos e entrevistas em um fluxo operacional claro para empresas.',
+    canonical: INSTITUTIONAL_URL,
+    image: `${INSTITUTIONAL_URL}/assets/og-default.png`,
     content,
     nonce: res.locals.cspNonce,
     structuredData: [organizationSchema(), {
-      '@context': 'https://schema.org', '@type': 'WebSite', name: BRAND_NAME, url: SITE_URL,
+      '@context': 'https://schema.org', '@type': 'WebSite', name: BRAND_NAME, url: INSTITUTIONAL_URL,
       potentialAction: [
         { '@type': 'SearchAction', target: `${SITE_URL}/vagas?q={search_term_string}`, 'query-input': 'required name=search_term_string' },
         { '@type': 'SearchAction', target: `${SITE_URL}/grupos?q={search_term_string}`, 'query-input': 'required name=search_term_string' },
@@ -1452,7 +1472,7 @@ app.get('/health', async (_req, res) => {
 
 registerDivulgacaoTracking({ app, pool, vacancyUrl, analyticsSecret: PORTAL_ANALYTICS_SECRET });
 
-app.get('/', vacanciesPage);
+app.get('/', (req, res, next) => (isJobsHostname(req) ? vacanciesPage(req, res, next) : landingPage(req, res)));
 app.get('/vagas', vacanciesPage);
 app.get('/vagas/:slug', vacancyDetailPage);
 app.get('/anunciar-vaga', (req, res) => res.send(companyLeadPage(req, res)));
@@ -1614,6 +1634,19 @@ app.get('/privacidade', (_req, res) => {
   }));
 });
 
+app.get('/sobre', (_req, res) => {
+  res.send(institutionalPage({
+    title: `Sobre a ${BRAND_NAME}`,
+    description: 'Conheça a marca, a operação e a identificação jurídica da Gênesis Recruta.',
+    canonicalPath: '/sobre',
+    sections: [
+      { title: 'Quem somos', paragraphs: ['A Gênesis Recruta oferece tecnologia e serviços para recrutamento e seleção, conectando divulgação de oportunidades, atendimento pelo WhatsApp, triagem, organização de documentos e acompanhamento de processos seletivos.'] },
+      { title: 'Responsável e dados cadastrais', items: [`Responsável legal: ${ORGANIZATION_RESPONSIBLE}.`, `Nome empresarial: ${ORGANIZATION_LEGAL_NAME}.`, `CNPJ: ${ORGANIZATION_CNPJ}.`, `Sede: ${ORGANIZATION_CITY}-${ORGANIZATION_STATE}.`, 'Site: genesisrecruta.com.br.', `Contato: ${PRIVACY_EMAIL}.`] },
+      { title: 'Produtos digitais', paragraphs: [`O site institucional está em genesisrecruta.com.br. O portal público de oportunidades está em ${SITE_URL}. O painel de operação está em ${PANEL_URL}.`] },
+    ],
+  }));
+});
+
 app.get('/termos', (_req, res) => {
   res.send(institutionalPage({
     title: 'Termos de uso',
@@ -1694,10 +1727,11 @@ app.get('/sitemap-estaticas.xml', (_req, res) => {
     { loc: `${SITE_URL}/empresas`, lastmod: now, priority: '0.8', changefreq: 'daily' },
     { loc: `${SITE_URL}/portal-para-empresas`, lastmod: now, priority: '0.8', changefreq: 'monthly' },
     { loc: `${SITE_URL}/anunciar-vaga`, lastmod: now, priority: '0.8', changefreq: 'monthly' },
-    { loc: `${SITE_URL}/privacidade`, lastmod: now, priority: '0.3', changefreq: 'yearly' },
-    { loc: `${SITE_URL}/termos`, lastmod: now, priority: '0.3', changefreq: 'yearly' },
-    { loc: `${SITE_URL}/exclusao-de-dados`, lastmod: now, priority: '0.3', changefreq: 'yearly' },
-    { loc: `${SITE_URL}/seguranca`, lastmod: now, priority: '0.5', changefreq: 'yearly' },
+    { loc: `${INSTITUTIONAL_URL}/sobre`, lastmod: now, priority: '0.7', changefreq: 'yearly' },
+    { loc: `${INSTITUTIONAL_URL}/privacidade`, lastmod: now, priority: '0.3', changefreq: 'yearly' },
+    { loc: `${INSTITUTIONAL_URL}/termos`, lastmod: now, priority: '0.3', changefreq: 'yearly' },
+    { loc: `${INSTITUTIONAL_URL}/exclusao-de-dados`, lastmod: now, priority: '0.3', changefreq: 'yearly' },
+    { loc: `${INSTITUTIONAL_URL}/seguranca`, lastmod: now, priority: '0.5', changefreq: 'yearly' },
   ];
   res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries.map(sitemapUrlEntry).join('\n')}\n</urlset>`);
 });

@@ -1,8 +1,8 @@
 {
   "name": "genesis-ia-public-portal",
-  "version": "13.2.0",
+  "version": "13.3.0",
   "private": true,
-  "description": "Gênesis Vagas com comunidades, oportunidades e portais de carreiras para empresas parceiras, conectado ao ecossistema Gênesis.",
+  "description": "Gênesis Recruta com site institucional, portal de oportunidades e portais de carreiras para empresas parceiras.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

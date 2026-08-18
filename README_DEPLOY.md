@@ -2,6 +2,25 @@
 
 Antes do deploy desta versão, aplique `sql/17_GENESIS_PORTAL_EMPRESAS_MVP.sql`. Depois execute `npm run preflight:companies` e `npm run test:companies`. As novas páginas principais são `/portal-para-empresas`, `/empresas` e `/meu-portal`. A migration é aditiva e as vagas continuam na tabela oficial `vagas`.
 
+## Domínios oficiais e identificação institucional
+
+O mesmo serviço atende o site institucional e o portal público, escolhendo a página inicial pelo hostname. Configure no EasyPanel:
+
+```env
+INSTITUTIONAL_URL=https://genesisrecruta.com.br
+SITE_URL=https://vagas.genesisrecruta.com.br
+PANEL_URL=https://app.genesisrecruta.com.br
+BRAND_NAME=Gênesis Recruta
+PRIVACY_EMAIL=junior13djd@gmail.com
+ORGANIZATION_LEGAL_NAME=50.374.306 Edenilson Gomes do Nascimento Junior
+ORGANIZATION_CNPJ=50.374.306/0001-86
+ORGANIZATION_RESPONSIBLE=Edenilson Gomes do Nascimento Junior
+ORGANIZATION_CITY=São Paulo
+ORGANIZATION_STATE=SP
+```
+
+`genesisrecruta.com.br` exibe a landing institucional. A raiz de `vagas.genesisrecruta.com.br` continua exibindo o portal de vagas, e `app.genesisrecruta.com.br` continua apontando para o serviço do painel.
+
 ---
 
 # Deploy seguro no Easypanel

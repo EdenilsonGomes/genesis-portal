@@ -12,8 +12,8 @@ function checkSyntax(file) {
 ['server.js','community.js','company-portals.js','lib/brazil-locations.js','public/portal.js','public/theme-init.js','scripts/test-community-flows.js','scripts/test-company-portals-v1.js','scripts/migrate-company-portals-v1.js','scripts/preflight-company-portals-v1.js'].forEach(checkSyntax);
 const server = read('server.js');
 ['data-theme-toggle','data-menu-toggle','portal-bottom-nav','JobPosting','sitemap.xml'].forEach((token) => assert(server.includes(token), `Recurso obrigatório ausente: ${token}`));
-['/privacidade','/termos','/exclusao-de-dados','PRIVACY_EMAIL','Meta, Facebook e WhatsApp'].forEach((token) => assert(server.includes(token), `Página legal incompleta: ${token}`));
-['13.1.0','upgradeLocationMarkup','grupo-oficial','recrutamento conversacional','registerCompanyPortalRoutes','sitemap-empresas.xml'].forEach((token) => assert(server.includes(token), `Recurso V13 ausente: ${token}`));
+['/sobre','/privacidade','/termos','/exclusao-de-dados','PRIVACY_EMAIL','ORGANIZATION_CNPJ','INSTITUTIONAL_URL','isJobsHostname','Meta, Facebook e WhatsApp'].forEach((token) => assert(server.includes(token), `Página institucional ou legal incompleta: ${token}`));
+['13.3.0','upgradeLocationMarkup','grupo-oficial','tecnologia para recrutamento e seleção','registerCompanyPortalRoutes','sitemap-empresas.xml'].forEach((token) => assert(server.includes(token), `Recurso V13 ausente: ${token}`));
 ['genesisInteractiveDemoSection','Veja a Gênesis trabalhando por você','Atendimento 24/7','data-demo-step'].forEach((token) => assert(server.includes(token), `Demonstração Gênesis V23 incompleta: ${token}`));
 const css = read('public/portal.css');
 ['html[data-theme="dark"]','portal-bottom-nav','mobile-menu','sticky-mobile-cta'].forEach((token) => assert(css.includes(token), `CSS incompleto: ${token}`));

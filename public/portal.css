@@ -186,6 +186,13 @@ img { max-width: 100%; display: block; }
 .footer-col h4 { margin: 0 0 16px; color: #fff; }
 .footer-col a { display: block; margin: 10px 0; color: #95a5bb; }
 .footer-bottom { padding: 22px 0; border-top: 1px solid rgba(255,255,255,.08); color: #718096; font-size: .82rem; }
+.footer-legal { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 22px 0; border-top: 1px solid rgba(255,255,255,.08); color: #95a5bb; font-size: .84rem; }
+.footer-legal p { margin: 0; line-height: 1.6; }
+.footer-legal a { color: #b9f3d6; overflow-wrap: anywhere; }
+
+@media (max-width: 720px) {
+  .footer-legal { align-items: flex-start; flex-direction: column; }
+}
 
 /* Portal de vagas */
 .portal-hero { padding: 68px 0 48px; color: #fff; background: linear-gradient(145deg, #061b22, #073642 58%, #078575); }
